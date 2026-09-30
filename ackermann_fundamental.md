@@ -104,6 +104,8 @@ $$
 
 ## 约束
 
-- 针对物理机构，一般有约束
+- 针对物理机构，一般有以下**状态**约束
   1. 前轮转角 $$ \left|\delta_L\right|,\left| \delta_R \right| \le \delta_m, \quad 0<\delta_m<\dfrac{\pi}{2}. $$ 或转化为适合控制决策的形式： $$ \left| \delta(t) \right| \le \bar{\delta}, \quad \bar{\delta}:=\arctan\left(\dfrac{2L\tan\delta_m}{2L+W\tan\delta_m}\right). $$
-  2. 轮转速（必定有 $|\varpi_{L,R}| \ge |\Omega_{L,R}|$ ） $$ \left| \varpi_L \right|,\left| \varpi_R \right| < \Omega_m, \quad \Omega_m > 0. $$ 或转化为适合控制决策的形式：$$\left|\Omega(t)\right| \le \bar{\Omega},\quad \bar{\Omega}:=\dfrac{\Omega_m \cos \delta_m}{1+W/(2R)}???.$$
+  2. 轮转速（必定有 $|\varpi_{L,R}| \ge |\Omega_{L,R}|$ ） $$ \left| \varpi_L \right|,\left| \varpi_R \right| \le \Omega_m, \quad \Omega_m > 0. $$ 或转化为适合控制决策的形式：$$ \Omega^2(t)\left[ 1+2\lambda\left|\tan\delta(t)\right| + \left(1+\lambda^2\right)\tan^2\delta(t) \right]\le \Omega_m^2. $$ 这是一个非线性不光滑约束。也可进一步保守简化为
+
+- 若不考虑 $\delta(t),\Omega(t)$ 的暂态过程，则上述状态约束直接退化为控制约束（假设控制器能使二者均无偏跟踪输入指令）
