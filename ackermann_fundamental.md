@@ -106,6 +106,62 @@ $$
 
 - 针对物理机构，一般有以下**状态**约束
   1. 前轮转角 $$ \left|\delta_L\right|,\left| \delta_R \right| \le \delta_m, \quad 0<\delta_m<\dfrac{\pi}{2}. $$ 或转化为适合控制决策的形式： $$ \left| \delta(t) \right| \le \bar{\delta}, \quad \bar{\delta}:=\arctan\left(\dfrac{2L\tan\delta_m}{2L+W\tan\delta_m}\right). $$
-  2. 轮转速（必定有 $|\varpi_{L,R}| \ge |\Omega_{L,R}|$ ） $$ \left| \varpi_L \right|,\left| \varpi_R \right| \le \Omega_m, \quad \Omega_m > 0. $$ 或转化为适合控制决策的形式：$$ \Omega^2(t)\left[ 1+2\lambda\left|\tan\delta(t)\right| + \left(1+\lambda^2\right)\tan^2\delta(t) \right]\le \Omega_m^2. $$ 这是一个非线性不光滑约束。也可进一步保守简化为
+      > 注：给定 $\delta_m$ 等参数后即可确定 $\bar{\delta}$ 。实际运行中，直接对前轮转角分别实施独立限幅会破坏 Ackermann 结构（瞬时转动中心偏离正确位置），因此一般应当以 $\bar{\delta}$ 直接限制 $\delta$ 状态，从而间接实现前轮转角约束。
+  2. 轮转速（必定有 $|\varpi_{L,R}| \ge |\Omega_{L,R}|$ ） $$ \left| \varpi_L \right|,\left| \varpi_R \right| \le \Omega_m, \quad \Omega_m > 0. $$ 记 $\lambda:=\dfrac{W}{2L}$，则可转化为适合控制决策的形式：$$ \Omega^2(t)\left[ 1+2\lambda\left|\tan\delta(t)\right| + \left(1+\lambda^2\right)\tan^2\delta(t) \right]\le \Omega_m^2. $$ 这是一个非线性不光滑约束。也可进一步保守简化为 $$ \left|\Omega(t)\right|\le\dfrac{\Omega_m}{\sqrt{\gamma}},$$ 其中 $$ \gamma:=1+2\lambda\tan\bar{\delta}+\left(1+\lambda^2\right)\tan^2\bar{\delta}. $$
+      > 注：一旦状态 $\delta(t)$ 确定， $\Omega(t)$ 的瞬时取值范围也就随之确定。与对 $\delta_L,\delta_R$ 的约束同理，对轮速的约束也应当通过限幅 $\Omega$ 间接实现，而非分别限幅各自轮速（否则破坏 Ackermann 运动学关系，产生滑移等问题）。
 
-- 若不考虑 $\delta(t),\Omega(t)$ 的暂态过程，则上述状态约束直接退化为控制约束（假设控制器能使二者均无偏跟踪输入指令）
+- 若忽略 $\delta(t),\Omega(t)$ 的暂态过程，并假设二者均无偏跟踪输入指令，即 $\delta=\delta_c$、$\Omega=\Omega_c$，则可将上述状态约束精确地改写为稳态控制约束
+
+  $$
+  u(t)=
+  \begin{bmatrix}
+  \delta_c(t)\\
+  \Omega_c(t)
+  \end{bmatrix}
+  \in\mathcal{U}_{\mathrm{ss}},
+  $$
+
+  其中
+
+  $$
+  \mathcal{U}_{\mathrm{ss}}
+  :=
+  \left\{
+  \begin{bmatrix}
+  \delta_c\\
+  \Omega_c
+  \end{bmatrix}
+  \in\mathbb{R}^2
+  \;\middle|\;
+  \begin{aligned}
+  &|\delta_c|\le\bar{\delta},\\
+  &\Omega_c^2\left[
+  1+2\lambda|\tan\delta_c|
+  +\left(1+\lambda^2\right)\tan^2\delta_c
+  \right]\le\Omega_m^2
+  \end{aligned}
+  \right\}.
+  $$
+
+- 若考虑一阶惯性暂态，则仅使稳态指令属于 $\mathcal{U}_{\mathrm{ss}}$ 不能保证中间状态始终可行。为保证全暂态过程满足原非线性状态约束，可采用保守的解耦矩形集合
+
+  $$
+  \mathcal{U}_{\mathrm{tr}}
+  :=
+  \left[-\bar{\delta},\bar{\delta}\right]
+  \times
+  \left[-\dfrac{\Omega_m}{\sqrt{\gamma}},
+  \dfrac{\Omega_m}{\sqrt{\gamma}}\right].
+  $$
+
+  若初始状态满足
+
+  $$
+  \begin{bmatrix}
+  \delta(0)\\
+  \Omega(0)
+  \end{bmatrix}
+  \in\mathcal{U}_{\mathrm{tr}},
+  $$
+
+  且对任意 $t\ge0$ 均有 $u(t)\in\mathcal{U}_{\mathrm{tr}}$，则在上述两个相互独立的一阶惯性动态下，$\delta(t)$ 和 $\Omega(t)$ 将始终保持在该矩形集合内，因而充分保证原状态约束在整个暂态过程中成立。
