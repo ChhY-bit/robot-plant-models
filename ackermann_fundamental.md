@@ -85,20 +85,20 @@ $$
 输出中的左右前轮转角、左右后轮角速度及左右前轮角速度不是独立动态状态，而是由 $z_4$、$z_5$ 决定的代数量。令
 
 $$
-\kappa(z):=\dfrac{\tan z_4}{L},
+\lambda:=\dfrac{W}{2L},
 $$
 
-则输出方程为
+则在前述 $|\lambda\tan z_4|<1$ 的正常转向范围内，输出方程可完全显式地写为
 
 $$
 \psi=h(z):=
 \begin{bmatrix}
-\displaystyle \arctan\left(\dfrac{L\kappa(z)}{1-W\kappa(z)/2}\right)\\[6pt]
-\displaystyle \arctan\left(\dfrac{L\kappa(z)}{1+W\kappa(z)/2}\right)\\[6pt]
-\displaystyle z_5\left(1-\dfrac{W\kappa(z)}{2}\right)\\[6pt]
-\displaystyle z_5\left(1+\dfrac{W\kappa(z)}{2}\right)\\[6pt]
-\displaystyle \dfrac{z_5\left(1-W\kappa(z)/2\right)}{\cos\delta_L}\\[10pt]
-\displaystyle \dfrac{z_5\left(1+W\kappa(z)/2\right)}{\cos\delta_R}
+\displaystyle \arctan\left(\dfrac{\tan z_4}{1-\lambda\tan z_4}\right)\\[8pt]
+\displaystyle \arctan\left(\dfrac{\tan z_4}{1+\lambda\tan z_4}\right)\\[8pt]
+\displaystyle z_5\left(1-\lambda\tan z_4\right)\\[6pt]
+\displaystyle z_5\left(1+\lambda\tan z_4\right)\\[6pt]
+\displaystyle z_5\sqrt{1-2\lambda\tan z_4+\left(1+\lambda^2\right)\tan^2 z_4}\\[8pt]
+\displaystyle z_5\sqrt{1+2\lambda\tan z_4+\left(1+\lambda^2\right)\tan^2 z_4}
 \end{bmatrix}.
 $$
 
@@ -107,7 +107,7 @@ $$
 - 针对物理机构，一般有以下**状态**约束
   1. 前轮转角 $$ \left|\delta_L\right|,\left| \delta_R \right| \le \delta_m, \quad 0<\delta_m<\dfrac{\pi}{2}. $$ 或转化为适合控制决策的形式： $$ \left| \delta(t) \right| \le \bar{\delta}, \quad \bar{\delta}:=\arctan\left(\dfrac{2L\tan\delta_m}{2L+W\tan\delta_m}\right). $$
       > 注：给定 $\delta_m$ 等参数后即可确定 $\bar{\delta}$ 。实际运行中，直接对前轮转角分别实施独立限幅会破坏 Ackermann 结构（瞬时转动中心偏离正确位置），因此一般应当以 $\bar{\delta}$ 直接限制 $\delta$ 状态，从而间接实现前轮转角约束。
-  2. 轮转速（必定有 $|\varpi_{L,R}| \ge |\Omega_{L,R}|$ ） $$ \left| \varpi_L \right|,\left| \varpi_R \right| \le \Omega_m, \quad \Omega_m > 0. $$ 记 $\lambda:=\dfrac{W}{2L}$，则可转化为适合控制决策的形式：$$ \Omega^2(t)\left[ 1+2\lambda\left|\tan\delta(t)\right| + \left(1+\lambda^2\right)\tan^2\delta(t) \right]\le \Omega_m^2. $$ 这是一个非线性不光滑约束。也可进一步保守简化为 $$ \left|\Omega(t)\right|\le\dfrac{\Omega_m}{\sqrt{\gamma}},$$ 其中 $$ \gamma:=1+2\lambda\tan\bar{\delta}+\left(1+\lambda^2\right)\tan^2\bar{\delta}. $$
+  2. 轮转速（必定有 $|\varpi_{L,R}| \ge |\Omega_{L,R}|$ ） $$ \left| \varpi_L \right|,\left| \varpi_R \right| \le \Omega_m, \quad \Omega_m > 0. $$ 采用上述 $\lambda$，可转化为适合控制决策的形式：$$ \Omega^2(t)\left[ 1+2\lambda\left|\tan\delta(t)\right| + \left(1+\lambda^2\right)\tan^2\delta(t) \right]\le \Omega_m^2. $$ 这是一个非线性不光滑约束。也可进一步保守简化为 $$ \left|\Omega(t)\right|\le\dfrac{\Omega_m}{\sqrt{\gamma}},$$ 其中 $$ \gamma:=1+2\lambda\tan\bar{\delta}+\left(1+\lambda^2\right)\tan^2\bar{\delta}. $$
       > 注：一旦状态 $\delta(t)$ 确定， $\Omega(t)$ 的瞬时取值范围也就随之确定。与对 $\delta_L,\delta_R$ 的约束同理，对轮速的约束也应当通过限幅 $\Omega$ 间接实现，而非分别限幅各自轮速（否则破坏 Ackermann 运动学关系，产生滑移等问题）。
 
 - 若忽略 $\delta(t),\Omega(t)$ 的暂态过程，并假设二者均无偏跟踪输入指令，即 $\delta=\delta_c$、$\Omega=\Omega_c$，则可将上述状态约束精确地改写为稳态控制约束

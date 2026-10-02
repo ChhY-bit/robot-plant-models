@@ -327,11 +327,11 @@ robot = wheel_robot(p, z0);
 
 即「先位姿 3 项，再按左轮（角、速）、右轮（角、速）排列」。轮角累计不归一化；航向角是否归一化取决于 `wrap_heading`。
 
-拼接 7 维状态时**不能**直接写 `[getPose(); getWheelAngle(); getWheelSpeed()]`，那样会把左右轮角连在一起、再跟上两个轮速，与 `States` 的交错顺序不符。请按 `angle(1); speed(1); angle(2); speed(2)` 交错排列，或像 `tests/test_loop.m` 那样用索引写入 `z([4, 6]) = angle` 与 `z([5, 7]) = speed`。
+拼接 7 维状态时**不能**直接写 `[getPose(); getWheelAngle(); getWheelSpeed()]`，那样会把左右轮角连在一起、再跟上两个轮速，与 `States` 的交错顺序不符。请按 `angle(1); speed(1); angle(2); speed(2)` 交错排列，或像 `tests/test_wheel_loop.m` 那样用索引写入 `z([4, 6]) = angle` 与 `z([5, 7]) = speed`。
 
 ## 12. 完整示例：控制周期与仿真步长解耦
 
-下面的写法与 `tests/test_loop.m` 一致：外层按 `dt` 推进仿真，每隔 `control_period` 重新下发一次指令。
+下面的写法与 `tests/test_wheel_loop.m` 一致：外层按 `dt` 推进仿真，每隔 `control_period` 重新下发一次指令。
 
 ```matlab
 % 类目录入路径；utils 目录只有需要直接调用 load_wheel_params 时才加
@@ -421,4 +421,4 @@ snapshot.wheelAngle  = robot.getWheelAngle();
 - `handle` 语义下，同一实例传给多个函数后它们操作的是同一个机器人。
 - 航向角默认累加，画极坐标或取主值时需要自行 `mod` 或开启 `setWrapHeading(true)`。
 - 拼 7 维状态时记住轮角与轮速是**左右交错**的（第 11 节），这是最常见的初始化错误。
-- 回归自检可运行 `tests/test_wheel_robot.m`（接口行为）和 `tests/test_loop.m`（含绘图的长时仿真循环）。
+- 回归自检可运行 `tests/test_wheel_robot.m`（接口行为）和 `tests/test_wheel_loop.m`（含绘图的长时仿真循环）。
