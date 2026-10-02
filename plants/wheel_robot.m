@@ -405,10 +405,10 @@ classdef wheel_robot < handle
             end
         end
 
-        function dz = stateDerivative(obj, z, cmd, t) %#ok<INUSD>
+        function dz = stateDerivative(obj, z, u, t) %#ok<INUSD>
             %STATEDERIVATIVE 计算给定状态和轮速指令对应的连续状态导数。
-            %   dz = obj.stateDerivative(z, cmd, t) 返回与七维 States 排列一致的状态导数。
-            %   z 是七维状态，cmd 是 2x1 左右轮目标角速度，时间参数预留给后续时变模型使用。
+            %   dz = obj.stateDerivative(z, u, t) 返回与七维 States 排列一致的状态导数。
+            %   z 是七维状态，u 是 2x1 左右轮目标角速度，时间参数预留给后续时变模型使用。
             L = obj.Params.trackWidth;                 % 轮距
             r_L = obj.Params.wheelRadius(1);           % 左轮半径
             r_R = obj.Params.wheelRadius(2);           % 右轮半径
@@ -419,9 +419,9 @@ classdef wheel_robot < handle
                   (r_L*z(5) + r_R*z(7))/2 * sin(z(3)); ...
                   (r_R*z(7) - r_L*z(5))/L; ...
                   z(5); ...
-                  (cmd(1) - z(5))/T_L; ...
+                  (u(1) - z(5))/T_L; ...
                   z(7); ...
-                  (cmd(2) - z(7))/T_R];
+                  (u(2) - z(7))/T_R];
         end
 
         function Mr = kin_fwd(obj)

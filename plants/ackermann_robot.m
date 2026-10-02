@@ -503,7 +503,7 @@ classdef ackermann_robot < handle
         end
 
         % ---------- 6.3 连续状态方程 ----------
-        function dz = stateDerivative(obj, z, cmd, t) %#ok<INUSD>
+        function dz = stateDerivative(obj, z, u, t) %#ok<INUSD>
             %STATEDERIVATIVE 计算五维连续状态导数。
             %   z 为当前或 RK4 中间状态，cmd 为本步保持的虚拟执行器指令。
             %   位姿导数采用后轮轴中点自行车模型，虚拟转角和轮速
@@ -513,8 +513,8 @@ classdef ackermann_robot < handle
             dz = [linear_speed*cos(z(3)); ...
                   linear_speed*sin(z(3)); ...
                   linear_speed*tan(z(4))/obj.Params.wheelBase; ...
-                  (cmd(1)-z(4))/obj.Params.steeringTimeConstant; ...
-                  (cmd(2)-z(5))/obj.Params.wheelTimeConstant];
+                  (u(1)-z(4))/obj.Params.steeringTimeConstant; ...
+                  (u(2)-z(5))/obj.Params.wheelTimeConstant];
         end
 
         % ---------- 6.4 虚拟状态到实体车轮量的映射 ----------
