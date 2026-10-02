@@ -1,1 +1,7 @@
 /PACKAGING.md
+
+# Website dependencies and generated output
+/pages/node_modules/
+/pages/.vitepress/cache/
+/pages/.vitepress/dist/
+/pages/test-results/

@@ -1,0 +1,16 @@
+{
+  "name": "robot-plant-models-pages",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vitepress dev . --host 127.0.0.1",
+    "build": "vitepress build .",
+    "preview": "vitepress preview . --host 127.0.0.1",
+    "test": "node --test tests/navigation.test.mjs",
+    "check:links": "node scripts/check-links.mjs"
+  },
+  "devDependencies": {
+    "markdown-it-mathjax3": "^4.3.2",
+    "vitepress": "1.6.4"
+  }
+}
