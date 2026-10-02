@@ -18,11 +18,11 @@ rpmFeatures:
     text: Customize physical parameters through YAML and adapt the MATLAB source to your application.
   - number: '03'
     title: Build on a clear foundation
-    text: Start with Ackermann and differential-drive models, with API references alongside the code.
+    text: Explore robot models with API references alongside the code.
 ---
 
-## A small collection. A clear foundation.
+## A clear foundation for robot modeling.
 
 Robot Plant Models focuses on planar mobile-robot motion and actuator dynamics. The current implementation is MATLAB-based; native Python and C/C++ libraries are future considerations, not available packages.
 
-Installation instructions, quickstarts, detailed model derivations, and release information are being prepared. The two robot API references are available to explore now.
+Installation instructions, quickstarts, detailed model derivations, and release information are being prepared. The available robot API references are ready to explore.
