@@ -12,7 +12,7 @@ A descriptive name for identifying the robot in displays, logs, or application c
 
 - **type:** User-defined; conventionally `char`, as in the default value.
 - **default:** `'wheel_robot'`
-- **see also:** [<u>method `wheel_robot()`</u>](Methods.md#wheel_robotparams-ini_states-metadata)
+- **see also:** [<u>method `rpm.wheel_robot()`</u>](Methods.md#rpm-wheel-robot)
 - **usage:**
     ```matlab
     robot.Metadata.Name = 'WheelBot';
@@ -24,7 +24,7 @@ An optional identifier for distinguishing robots in multi-robot applications. Th
 
 - **type:** User-defined; for example, `char` or a numeric scalar (the default `[]` is an empty `double` array).
 - **default:** `[]`
-- **see also:** [<u>method `wheel_robot()`</u>](Methods.md#wheel_robotparams-ini_states-metadata)
+- **see also:** [<u>method `rpm.wheel_robot()`</u>](Methods.md#rpm-wheel-robot)
 - **usage:**
     ```matlab
     robot.Metadata.Number = '001';
@@ -36,7 +36,7 @@ Free-form information about the robot, such as its purpose, hardware, or configu
 
 - **type:** User-defined; conventionally `char`, as in the default value.
 - **default:** `'none'`
-- **see also:** [<u>method `wheel_robot()`</u>](Methods.md#wheel_robotparams-ini_states-metadata)
+- **see also:** [<u>method `rpm.wheel_robot()`</u>](Methods.md#rpm-wheel-robot)
 - **usage:**
     ```matlab
     robot.Metadata.Description = 'A two-wheel differential-drive robot.';
@@ -88,20 +88,20 @@ The constructor and `reset()` accept any finite real initial wheel speeds, inclu
 
 The physical and display parameters of the Wheel-Robot, stored in a private scalar structure. The seven fields below are all required: each corresponds to a top-level YAML key with exactly the same case-sensitive name. For example, YAML `wheelRadius: [0.10, 0.12]` becomes MATLAB `params.wheelRadius = [0.10; 0.12]` after loading; the YAML file does not contain a surrounding `Params:` key.
 
-When the constructor's `Params` argument is omitted or `[]`, `load_wheel_params()` reads the project's `config/wheel_robot.yaml`. To use a custom file, call `load_wheel_params(file_path)` and pass its returned structure to the constructor. Alternatively, supply a manually created scalar structure containing all seven fields. Missing fields cause an error; individual missing values are not filled from the default YAML file.
+When the constructor's `Params` argument is omitted or `[]`, `rpm.load_wheel_params()` reads the project's `+rpm/config/wheel_robot.yaml`. To use a custom file, call `rpm.load_wheel_params(file_path)` and pass its returned structure to the constructor. Alternatively, supply a manually created scalar structure containing all seven fields. Missing fields cause an error; individual missing values are not filled from the default YAML file.
 
 For `wheelRadius`, `motorTimeConstant`, `maxWheelSpeed`, and `wheelWidth`, a scalar specifies the same value for both wheels; a two-element row or column vector specifies `[left; right]`. The loader and constructor normalize these fields to `2x1 double` vectors, `bodySize` to a `3x1 double` vector, and the remaining required fields to double scalars. The loader preserves zero time constants; the constructor warns and replaces only the zero elements with `1e-3` s. The **default** values below come from the bundled YAML template rather than hard-coded per-field constructor defaults.
 
-Parameters are copied into the object at construction. Editing the YAML file, the original structure, or a copy returned by `getParams()` does not update an existing robot. Create a new object to apply changed physical parameters; `reset()` preserves them. Additional fields in a manually supplied structure are retained by the constructor, but `load_wheel_params()` returns only the seven recognized fields. The YAML parameter file does not configure `Metadata`, `States`, `Cmd`, or `Config`.
+Parameters are copied into the object at construction. Editing the YAML file, the original structure, or a copy returned by `getParams()` does not update an existing robot. Create a new object to apply changed physical parameters; `reset()` preserves them. Additional fields in a manually supplied structure are retained by the constructor, but `rpm.load_wheel_params()` returns only the seven recognized fields. The YAML parameter file does not configure `Metadata`, `States`, `Cmd`, or `Config`.
 
 For example, export a template once, edit its values, then load it:
 
 ```matlab
-export_wheel_params('my_wheel.yaml'); % Refuses to overwrite an existing file.
+rpm.export_wheel_params('my_wheel.yaml'); % Refuses to overwrite an existing file.
 % Edit my_wheel.yaml before loading it.
-params = load_wheel_params('my_wheel.yaml');
+params = rpm.load_wheel_params('my_wheel.yaml');
 params.wheelRadius = [0.08; 0.12]; % Optional in-memory override; does not edit the YAML.
-robot = wheel_robot(params);
+robot = rpm.wheel_robot(params);
 actual_params = robot.getParams();
 ```
 

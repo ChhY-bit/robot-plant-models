@@ -3,15 +3,14 @@ function test_wheel_robot()
 %   运行 test_wheel_robot，不绘图；失败时由 assert 报告。
     test_dir = fileparts(mfilename('fullpath'));
     project_dir = fileparts(test_dir);
-    addpath(fullfile(project_dir, 'plants'));
-    addpath(fullfile(project_dir, 'utils'));
-    params = load_wheel_params();
+    addpath(project_dir);
+    params = rpm.load_wheel_params();
     params.wheelRadius = [0.08; 0.12];
     params.motorTimeConstant = [0.1; 0.2];
     params.maxWheelSpeed = [3.5; 5.5];
 
     % 行向量、整数输入应规范化，且左右不对称参数的换算互逆。
-    robot = wheel_robot(params, int16([0, 0, 1, 0, 3, 0, 5]));
+    robot = rpm.wheel_robot(params, int16([0, 0, 1, 0, 3, 0, 5]));
     assert(isequal(robot.getStates(), [0; 0; 1; 0; 3; 0; 5]));
     assert(isequal(robot.getCmd(), [0; 0]));
     expected_body = [(0.08*3 + 0.12*5)/2; (0.12*5 - 0.08*3)/0.45];
@@ -31,14 +30,14 @@ function test_wheel_robot()
     % 导出的 YAML 模板应能重新读入，且不得覆盖已有目标文件。
     exported_path = string(tempname) + ".yaml";
     exported_cleanup = onCleanup(@() delete_if_file(exported_path));
-    actual_path = export_wheel_params(exported_path);
+    actual_path = rpm.export_wheel_params(exported_path);
     assert(isfile(actual_path));
-    assert(isequal(load_wheel_params(actual_path), load_wheel_params()));
-    must_reject(@() export_wheel_params(actual_path));
+    assert(isequal(rpm.load_wheel_params(actual_path), rpm.load_wheel_params()));
+    must_reject(@() rpm.export_wheel_params(actual_path));
 
     for method = ["euler", "RK4"]
-        row_robot = wheel_robot(params, 0:6);
-        col_robot = wheel_robot(params, (0:6)');
+        row_robot = rpm.wheel_robot(params, 0:6);
+        col_robot = rpm.wheel_robot(params, (0:6)');
         row_robot.setSolutionMethod(method);
         col_robot.setSolutionMethod(method);
         row_robot.step(1e-4);
@@ -49,7 +48,7 @@ function test_wheel_robot()
     end
 
     % 只发送一次指令：对照一阶转速及其转角积分的解析解。
-    robot = wheel_robot(params);
+    robot = rpm.wheel_robot(params);
     robot.sendCmd(2, 4);
     dt = 1e-3;
     duration = 0.5;
@@ -63,7 +62,7 @@ function test_wheel_robot()
     assert(norm(robot.getWheelAngle() - expected_angle) < 1e-9);
 
     % 恒定轮速圆弧：用解析轨迹校验位置、航向和 RK4 状态耦合。
-    robot = wheel_robot(params, [0; 0; 0; 0; 2; 0; 4]);
+    robot = rpm.wheel_robot(params, [0; 0; 0; 0; 2; 0; 4]);
     robot.sendCmd(2, 4);
     for k = 1:100
         robot.step(0.01);
@@ -76,7 +75,7 @@ function test_wheel_robot()
     % 默认饱和警告，整数指令对非整数上限限幅时不应发生取整。
     saved_warning = warning('on', 'wheel_robot:CommandSaturated');
     restore_warning = onCleanup(@() warning(saved_warning));
-    robot = wheel_robot(params);
+    robot = rpm.wheel_robot(params);
     robot.setSolutionMethod('Euler');
     lastwarn('');
     robot.sendCmd(int16(100), int16(-100));
@@ -91,7 +90,7 @@ function test_wheel_robot()
     [message, ~] = lastwarn();
     assert(isempty(message));
 
-    robot = wheel_robot(params, [0; 0; 4; 0; 0; 0; 0]);
+    robot = rpm.wheel_robot(params, [0; 0; 4; 0; 0; 0; 0]);
     robot.step(dt);
     pose = robot.getPose();
     assert(pose(3) == 4);
@@ -113,7 +112,7 @@ function test_wheel_robot()
     % dt/T 超过推荐值时只在进入警告区间时提示，避免连续积分刷屏。
     warning_params = params;
     warning_params.motorTimeConstant = [0.1; 0.2];
-    warning_robot = wheel_robot(warning_params);
+    warning_robot = rpm.wheel_robot(warning_params);
     warning_robot.setSolutionMethod('euler');
     saved_step_warning = warning('on', 'wheel_robot:LargeStepSize');
     restore_step_warning = onCleanup(@() warning(saved_step_warning));
@@ -133,21 +132,21 @@ function test_wheel_robot()
 
     % 零时间常数替换后应等价于显式设置 1e-3 s。
     params.motorTimeConstant = [0; 0.2];
-    robot = wheel_robot(params);
+    robot = rpm.wheel_robot(params);
     params.motorTimeConstant(1) = 1e-3;
-    reference = wheel_robot(params);
+    reference = rpm.wheel_robot(params);
     robot.sendCmd(1, 1);
     reference.sendCmd(1, 1);
     robot.step(1e-4);
     reference.step(1e-4);
     assert(isequal(robot.getWheelSpeed(), reference.getWheelSpeed()));
 
-    must_reject(@() wheel_robot(params, zeros(7)));
-    must_reject(@() wheel_robot(params, [NaN; zeros(6, 1)]));
-    must_reject(@() wheel_robot(params, [], 'invalid'));
-    must_reject(@() wheel_robot(rmfield(params, 'wheelRadius')));
+    must_reject(@() rpm.wheel_robot(params, zeros(7)));
+    must_reject(@() rpm.wheel_robot(params, [NaN; zeros(6, 1)]));
+    must_reject(@() rpm.wheel_robot(params, [], 'invalid'));
+    must_reject(@() rpm.wheel_robot(rmfield(params, 'wheelRadius')));
     params.trackWidth = 0;
-    must_reject(@() wheel_robot(params));
+    must_reject(@() rpm.wheel_robot(params));
     must_reject(@() robot.step(0));
     must_reject(@() robot.step(1e-4, NaN));
     must_reject(@() robot.sendCmd(Inf, 0));

@@ -7,7 +7,7 @@ clc;
 
 test_dir = fileparts(mfilename('fullpath'));
 project_dir = fileparts(test_dir);
-addpath(fullfile(project_dir, 'plants'));
+addpath(project_dir);
 
 dt = 1e-3;                 % 仿真步长 [s]
 simulation_duration = 38;  % 仿真时长 [s]
@@ -17,7 +17,7 @@ num_steps = round(simulation_duration / dt);
 control_steps = round(control_period / dt);
 time = (0:num_steps) * dt;
 
-robot = ackermann_robot();
+robot = rpm.ackermann_robot();
 cmd_limits = robot.getCmdLimits();
 
 states = zeros(5, num_steps + 1);

@@ -52,9 +52,9 @@ classdef ackermann_robot < handle
     methods (Access = public)
         function obj = ackermann_robot(Params, Ini_States, Metadata)
             %ACKERMANN_ROBOT 创建并初始化阿克曼机器人。
-            %   obj = ackermann_robot(Params, ini_states, Metadata) 创建对象。
+            %   obj = rpm.ackermann_robot(Params, ini_states, Metadata) 创建对象。
             %   三个入参均可省略或传 []，默认值依次为
-            %   load_ackermann_params() 的结果、五维零状态和带默认描述字段的结构体。
+            %   rpm.load_ackermann_params() 的结果、五维零状态和带默认描述字段的结构体。
             %   Params 必须是包含所需物理字段的标量结构体，构造函数会将
             %   数值字段规范为 double 标量或列向量。
             %   ini_states 接受五元素行向量或列向量，顺序见 States 属性说明。
@@ -65,15 +65,7 @@ classdef ackermann_robot < handle
             %   任一时间常数为零时会发出警告并替换为 1e-3 s。
             %   默认指令为零，因此初始非零虚拟执行器状态会逐渐衰减。
             if nargin < 1 || isempty(Params)
-                class_dir = fileparts(mfilename('fullpath'));
-                project_dir = fileparts(class_dir);
-                utils_dir = fullfile(project_dir, 'utils');
-                utils_on_path = any(strcmpi(strsplit(path, pathsep), utils_dir));
-                if ~utils_on_path
-                    addpath(utils_dir);
-                    path_cleanup = onCleanup(@() rmpath(utils_dir));
-                end
-                Params = load_ackermann_params();
+                Params = rpm.load_ackermann_params();
             end
             Params = obj.validateParams(Params);
 

@@ -1,5 +1,9 @@
 /PACKAGING.md
 
+# Generated distribution packages and staging files
+/dist/
+/packaging/
+
 # Website dependencies and generated output
 /pages/node_modules/
 /pages/.vitepress/cache/

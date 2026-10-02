@@ -2,10 +2,9 @@ function test_ackermann_robot()
 %TEST_ACKERMANN_ROBOT 检查参数加载器和对象初始化框架。
     test_dir = fileparts(mfilename('fullpath'));
     project_dir = fileparts(test_dir);
-    addpath(fullfile(project_dir, 'plants'));
-    addpath(fullfile(project_dir, 'utils'));
+    addpath(project_dir);
 
-    params = load_ackermann_params();
+    params = rpm.load_ackermann_params();
     expected_fields = {'wheelRadius', 'wheelBase', 'trackWidth', ...
         'wheelTimeConstant', 'steeringTimeConstant', ...
         'maxPhysicalWheelSpeed', 'maxPhysicalSteeringAngle', ...
@@ -19,15 +18,15 @@ function test_ackermann_robot()
     % 导出的内置模板应可重新加载，且不得覆盖已有文件或目录。
     exported_path = string(tempname) + ".yaml";
     exported_cleanup = onCleanup(@() delete_if_file(exported_path));
-    actual_path = export_ackermann_params(exported_path);
+    actual_path = rpm.export_ackermann_params(exported_path);
     assert(isfile(actual_path));
-    assert(isequal(load_ackermann_params(actual_path), params));
-    must_reject(@() export_ackermann_params(actual_path));
-    must_reject(@() export_ackermann_params(string(tempdir)));
+    assert(isequal(rpm.load_ackermann_params(actual_path), params));
+    must_reject(@() rpm.export_ackermann_params(actual_path));
+    must_reject(@() rpm.export_ackermann_params(string(tempdir)));
 
     % 默认构造、行状态规范化和元数据默认字段。
     initial_states = int16([0, 1, 2, 0, 4]);
-    robot = ackermann_robot(params, initial_states);
+    robot = rpm.ackermann_robot(params, initial_states);
     assert(isequal(robot.getStates(), double(initial_states')));
     assert(isequal(robot.getCmd(), zeros(2, 1)));
     assert(strcmp(robot.Metadata.Name, 'ackermann_robot'));
@@ -39,14 +38,14 @@ function test_ackermann_robot()
     zero_params.steeringTimeConstant = 0;
     yaml_path = write_params_yaml(zero_params);
     yaml_cleanup = onCleanup(@() delete_if_file(yaml_path));
-    loaded_zero_params = load_ackermann_params(yaml_path);
+    loaded_zero_params = rpm.load_ackermann_params(yaml_path);
     assert(loaded_zero_params.wheelTimeConstant == 0);
     assert(loaded_zero_params.steeringTimeConstant == 0);
 
     saved_warning = warning('on', 'ackermann_robot:ZeroTimeConstant');
     warning_cleanup = onCleanup(@() warning(saved_warning));
     lastwarn('');
-    zero_robot = ackermann_robot(loaded_zero_params);
+    zero_robot = rpm.ackermann_robot(loaded_zero_params);
     [~, warning_id] = lastwarn();
     assert(strcmp(warning_id, 'ackermann_robot:ZeroTimeConstant'));
     actual_params = zero_robot.getParams();
@@ -57,7 +56,7 @@ function test_ackermann_robot()
     steering = 0.2;
     wheel_speed = 4;
     heading = 0.3;
-    robot = ackermann_robot(params, [1; 2; heading; steering; wheel_speed]);
+    robot = rpm.ackermann_robot(params, [1; 2; heading; steering; wheel_speed]);
     expected_velocity = [params.wheelRadius*wheel_speed; ...
         params.wheelRadius*wheel_speed*tan(steering)/params.wheelBase];
     assert(isequal(robot.getPose(), [1; 2; heading]));
@@ -97,7 +96,7 @@ function test_ackermann_robot()
     [~, warning_id] = lastwarn();
     assert(strcmp(warning_id, 'ackermann_robot:CommandSaturated'));
     assert(norm(robot.getCmd()-[steering_limit; -wheel_speed_limit]) < 1e-12);
-    boundary_robot = ackermann_robot(params, ...
+    boundary_robot = rpm.ackermann_robot(params, ...
         [0; 0; 0; steering_limit; wheel_speed_limit]);
     assert(max(abs(boundary_robot.getPhysicalSteeringAngle())) <= ...
         params.maxPhysicalSteeringAngle+1e-12);
@@ -109,7 +108,7 @@ function test_ackermann_robot()
     for steering_sign = [-1, 1]
         for speed_sign = [-1, 1]
             boundary_states = [1; 2; 3; steering_sign*limits(1); speed_sign*limits(2)];
-            boundary_robot = ackermann_robot(params, boundary_states);
+            boundary_robot = rpm.ackermann_robot(params, boundary_states);
             assert(isequal(boundary_robot.getStates(), boundary_states));
             boundary_robot.sendCmd(0.1, 1);
             boundary_robot.reset(boundary_states');
@@ -128,7 +127,7 @@ function test_ackermann_robot()
             invalid_states = zeros(5, 1);
             invalid_states(state_index) = state_sign * ...
                 (limits(state_index-3) + eps(limits(state_index-3)));
-            must_reject_initial_state(@() ackermann_robot(params, invalid_states));
+            must_reject_initial_state(@() rpm.ackermann_robot(params, invalid_states));
             must_reject_initial_state(@() robot.reset(invalid_states));
             assert(isequal(robot.getStates(), preserved_states));
             assert(isequal(robot.getCmd(), preserved_cmd));
@@ -141,7 +140,7 @@ function test_ackermann_robot()
     assert(isempty(message));
 
     % 一阶执行器响应应与解析解一致；固定执行器状态形成圆弧轨迹。
-    robot = ackermann_robot(params);
+    robot = rpm.ackermann_robot(params);
     robot.sendCmd(0.25, 3);
     dt = 1e-3;
     duration = 0.5;
@@ -156,7 +155,7 @@ function test_ackermann_robot()
 
     steering = 0.2;
     wheel_speed = 3;
-    robot = ackermann_robot(params, [0; 0; 0; steering; wheel_speed]);
+    robot = rpm.ackermann_robot(params, [0; 0; 0; steering; wheel_speed]);
     robot.sendCmd(steering, wheel_speed);
     for k = 1:100
         robot.step(0.01);
@@ -181,12 +180,12 @@ function test_ackermann_robot()
     assert(norm(actual_actuator-[0.001; 0.005]) < 1e-12);
 
     % 缺失字段、非法范围、错误维度和非法 YAML 都必须被拒绝。
-    must_reject(@() load_ackermann_params( ...
-        fullfile(project_dir, 'config', 'missing.yaml')));
-    must_reject(@() ackermann_robot(rmfield(params, 'wheelBase')));
-    must_reject(@() ackermann_robot(params, zeros(6, 1)));
-    must_reject(@() ackermann_robot(params, [NaN; zeros(4, 1)]));
-    must_reject(@() ackermann_robot(params, [], 'invalid'));
+    must_reject(@() rpm.load_ackermann_params( ...
+        fullfile(project_dir, '+rpm', 'config', 'missing.yaml')));
+    must_reject(@() rpm.ackermann_robot(rmfield(params, 'wheelBase')));
+    must_reject(@() rpm.ackermann_robot(params, zeros(6, 1)));
+    must_reject(@() rpm.ackermann_robot(params, [NaN; zeros(4, 1)]));
+    must_reject(@() rpm.ackermann_robot(params, [], 'invalid'));
     must_reject(@() robot.step(0));
     must_reject(@() robot.step(1e-3, NaN));
     must_reject(@() robot.sendCmd(Inf, 0));
@@ -198,19 +197,19 @@ function test_ackermann_robot()
 
     invalid_params = params;
     invalid_params.wheelRadius = 0;
-    must_reject(@() ackermann_robot(invalid_params));
+    must_reject(@() rpm.ackermann_robot(invalid_params));
     invalid_params = params;
     invalid_params.wheelTimeConstant = -1;
-    must_reject(@() ackermann_robot(invalid_params));
+    must_reject(@() rpm.ackermann_robot(invalid_params));
     invalid_params = params;
     invalid_params.maxPhysicalSteeringAngle = pi / 2;
-    must_reject(@() ackermann_robot(invalid_params));
+    must_reject(@() rpm.ackermann_robot(invalid_params));
 
     % 初始虚拟转角必须位于 Ackermann 映射的正常几何域。
     steering_domain = atan(2*params.wheelBase/params.trackWidth);
-    must_reject(@() ackermann_robot(params, ...
+    must_reject(@() rpm.ackermann_robot(params, ...
         [0; 0; 0; steering_domain; 0]));
-    must_reject(@() ackermann_robot(params, [0; 0; 0; pi; 0]));
+    must_reject(@() rpm.ackermann_robot(params, [0; 0; 0; pi; 0]));
     preserved_states = robot.getStates();
     preserved_cmd = robot.getCmd();
     must_reject(@() robot.reset([0; 0; 0; -steering_domain; 0]));
@@ -222,7 +221,7 @@ function test_ackermann_robot()
     invalid_yaml_path = string(tempname) + ".yaml";
     invalid_cleanup = onCleanup(@() delete_if_file(invalid_yaml_path));
     writelines(invalid_yaml, invalid_yaml_path);
-    must_reject(@() load_ackermann_params(invalid_yaml_path));
+    must_reject(@() rpm.load_ackermann_params(invalid_yaml_path));
 
     disp('ackermann_robot regression checks passed');
 end

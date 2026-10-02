@@ -6,7 +6,7 @@
 
 Use the constructor to create a robot with its own physical parameters, initial states, and metadata. Use `reset()` to restart an existing robot without changing its parameters or simulation configuration; neither operation advances simulation time.
 
-### `wheel_robot(Params, Ini_States, Metadata)`
+### `rpm.wheel_robot(Params, Ini_States, Metadata)` {#rpm-wheel-robot}
 
 Create a new differential-drive robot with the supplied parameters, initial states, and metadata. Omitted or `[]` arguments use the bundled YAML parameters, seven zero states, and default metadata, respectively. Initial wheel speeds are not clipped or restricted by `maxWheelSpeed`. Both held commands start at zero, so nonzero initial speeds decay unless new targets are sent. Each constructor call creates an independent `handle` object.
 
@@ -23,19 +23,19 @@ Create a new differential-drive robot with the supplied parameters, initial stat
         - see also: [<u>property `Metadata`</u>](Properties.md#1-metadata)
 - **Return:**
     - `obj`
-        - type: `wheel_robot` handle object
+        - type: `rpm.wheel_robot` handle object
 - **see also:** [<u>method `reset()`</u>](#resetini_states), [<u>method `getParams()`</u>](#getparams)
 - **Usage:**
     ```matlab
     % Use default parameters
-    robot = wheel_robot();
+    robot = rpm.wheel_robot();
     ```
 
     ```matlab
     % Use custom parameters; left and right values may differ
-    Params = load_wheel_params();
+    Params = rpm.load_wheel_params();
     Params.wheelRadius = [0.08; 0.12];
-    robot = wheel_robot(Params);
+    robot = rpm.wheel_robot(Params);
     ```
 
     ```matlab
@@ -43,7 +43,7 @@ Create a new differential-drive robot with the supplied parameters, initial stat
     Ini_States = [10; -10; -pi/2; 0; 2; 0; 2];
     Metadata = struct('Name', 'WheelBot', 'Number', '001', ...
                       'Description', 'My differential-drive robot.');
-    robot = wheel_robot([], Ini_States, Metadata);
+    robot = rpm.wheel_robot([], Ini_States, Metadata);
     ```
 
 ### `reset(ini_states)`
@@ -56,10 +56,10 @@ Reset the robot to the supplied states, or zero states when `ini_states` is omit
         - order and units: `[x; y; theta; alpha_L; Omega_L; alpha_R; Omega_R]`, in `[m; m; rad; rad; rad/s; rad; rad/s]`
         - see also: [<u>property `States`</u>](Properties.md#2-states)
 - **Return:** none
-- **see also:** [<u>property `Cmd`</u>](Properties.md#4-cmd), [<u>property `StepSizeWarningActive`</u>](Properties.md#6-stepsizewarningactive), [<u>method `wheel_robot()`</u>](#wheel_robotparams-ini_states-metadata)
+- **see also:** [<u>property `Cmd`</u>](Properties.md#4-cmd), [<u>property `StepSizeWarningActive`</u>](Properties.md#6-stepsizewarningactive), [<u>method `rpm.wheel_robot()`</u>](#rpm-wheel-robot)
 - **Usage:**
     ```matlab
-    robot = wheel_robot();
+    robot = rpm.wheel_robot();
     robot.sendCmd(4, 6);
     robot.step(0.005);
     robot.reset(); % Zero states and zero held commands
@@ -305,7 +305,7 @@ Choose `dt <= 0.1 * min(params.motorTimeConstant)` as a step-size guideline, usi
 - **see also:** [<u>property `States`</u>](Properties.md#2-states), [<u>property `Config`</u>](Properties.md#5-config), [<u>property `StepSizeWarningActive`</u>](Properties.md#6-stepsizewarningactive), [<u>method `sendCmd()`</u>](#sendcmdleft_wheel_cmd-right_wheel_cmd), [<u>method `stateDerivative()`</u>](#statederivativez-u-t)
 - **Usage:**
     ```matlab
-    robot = wheel_robot();
+    robot = rpm.wheel_robot();
     params = robot.getParams();
     dt = 0.05 * min(params.motorTimeConstant);
     robot.sendCmd(4, 6);
@@ -387,7 +387,7 @@ Internally validate the scalar parameter structure and normalize its seven requi
 
 - **Argument:** `Params` — scalar `struct` containing all required fields
 - **Return:** `Params` — validated and normalized scalar `struct`
-- **see also:** [<u>property `Params`</u>](Properties.md#3-params), [<u>method `wheel_robot()`</u>](#wheel_robotparams-ini_states-metadata)
+- **see also:** [<u>property `Params`</u>](Properties.md#3-params), [<u>method `rpm.wheel_robot()`</u>](#rpm-wheel-robot)
 
 ### `stateDerivative(z, u, t)`
 

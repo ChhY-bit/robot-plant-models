@@ -6,7 +6,7 @@
 
 Use the constructor to create a robot with its own physical parameters, initial states, and metadata. Use `reset()` to restart an existing robot without changing its parameters or simulation configuration; neither operation advances simulation time.
 
-### `ackermann_robot(Params, Ini_States, Metadata)`
+### `rpm.ackermann_robot(Params, Ini_States, Metadata)` {#rpm-ackermann-robot}
 
 Create a new Ackermann robot with the supplied parameters, initial states, and metadata. Omitted or `[]` arguments use the bundled YAML parameters, five zero states, and default metadata, respectively. Initial states are validated rather than clipped, and both held commands start at zero, even when the initial actuator states are nonzero.
 
@@ -21,19 +21,19 @@ Create a new Ackermann robot with the supplied parameters, initial states, and m
         - type: `struct`
         - see also: [<u>property `Metadata`</u>](Properties.md#1-metadata)
 - **Return:**
-    - `ackermann_robot`
+    - `rpm.ackermann_robot`
         - type: `object`
 - **Usage:**
     ```matlab
     % Use default parameters
-    robot = ackermann_robot();
+    robot = rpm.ackermann_robot();
     ```
 
     ```matlab
     % Use custom parameters
-    Params = load_ackermann_params();   % get default parameters
+    Params = rpm.load_ackermann_params();   % get default parameters
     Params.maxPhysicalSteeringAngle = 0.5;  % change parameter(s)
-    robot = ackermann_robot(Params);    % use modified parameters
+    robot = rpm.ackermann_robot(Params);    % use modified parameters
     ```
 
     ```matlab
@@ -41,7 +41,7 @@ Create a new Ackermann robot with the supplied parameters, initial states, and m
     Ini_States = [10; -10; -pi/2; 0; 0];    % custom initial states
     Metadata = struct('Name', 'Robert', 'Number', '001', ...
                       'Description', 'My beloved robot.');   % custom metadata
-    robot = ackermann_robot([], Ini_States, Metadata);
+    robot = rpm.ackermann_robot([], Ini_States, Metadata);
     ```
 
 ### `reset(ini_states)`
@@ -55,7 +55,7 @@ Reset the robot to the supplied states, or zero states when `ini_states` is omit
 - **Return:** none
 - **Usage:**
     ```matlab
-    robot = ackermann_robot();
+    robot = rpm.ackermann_robot();
 
     % do something ...
     % ...
@@ -362,7 +362,7 @@ Choose `dt <= 0.1 * min(steeringTimeConstant, wheelTimeConstant)` as a step-size
 - **see also:** [<u>property `States`</u>](Properties.md#2-states), [<u>property `Config`</u>](Properties.md#5-config), [<u>property `StepSizeWarningActive`</u>](Properties.md#6-stepsizewarningactive), [<u>method `sendCmd`</u>](#sendcmdsteering_angle_cmd-wheel_speed_cmd), [<u>method `stateDerivative`</u>](#statederivativezut)
 - **Usage:**
     ```matlab
-    robot = ackermann_robot();
+    robot = rpm.ackermann_robot();
     params = robot.getParams();
     dt = 0.05 * min(params.steeringTimeConstant, params.wheelTimeConstant);
     robot.sendCmd(0.2, 5);
@@ -452,7 +452,7 @@ Internally validate the scalar parameter structure and normalize the ten require
 
 - **Argument:** `Params` — scalar `struct` containing all required fields
 - **Return:** `Params` — validated and normalized scalar `struct`
-- **see also:** [<u>property `Params`</u>](Properties.md#3-params), [<u>method `ackermann_robot`</u>](#ackermann_robotparams-ini_states-metadata)
+- **see also:** [<u>property `Params`</u>](Properties.md#3-params), [<u>method `rpm.ackermann_robot`</u>](#rpm-ackermann-robot)
 
 ### `stateDerivative(z,u,t)`
 

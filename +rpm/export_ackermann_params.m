@@ -15,7 +15,7 @@ function file_path = export_ackermann_params(file_path)
     end
 
     function_dir = fileparts(mfilename("fullpath"));
-    source_path = fullfile(function_dir, "..", "config", ...
+    source_path = fullfile(function_dir, "config", ...
         "ackermann_robot.yaml");
 
     if ~isfile(source_path)

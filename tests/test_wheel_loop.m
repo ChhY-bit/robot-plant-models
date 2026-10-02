@@ -5,7 +5,7 @@ clc;
 
 test_dir = fileparts(mfilename('fullpath'));
 project_dir = fileparts(test_dir);
-addpath(fullfile(project_dir, 'plants'));
+addpath(project_dir);
 
 dt = 1e-4;                 % 仿真步长 [s]
 simulation_duration = 30;  % 仿真时长 [s]
@@ -15,7 +15,7 @@ num_steps = round(simulation_duration / dt);
 control_steps = round(control_period / dt);
 time = (0:num_steps) * dt;
 
-robot = wheel_robot();
+robot = rpm.wheel_robot();
 
 % 状态顺序：[x; y; theta; angle_L; speed_L; angle_R; speed_R]
 states = zeros(7, num_steps + 1);
