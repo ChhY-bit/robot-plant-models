@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useData } from 'vitepress'
 
 const props = defineProps<{ variant?: 'ackermann' | 'wheel'; scene?: boolean }>()
+const { page } = useData()
+const zh = computed(() => page.value.relativePath.startsWith('zh/'))
 
 const steering = ref(0)
 const sceneElement = ref<SVGSVGElement | null>(null)
@@ -42,7 +45,7 @@ function steer(event: PointerEvent) {
 
 <template>
   <svg v-if="scene" ref="sceneElement" class="robot-scene" :viewBox="compact ? '0 0 530 420' : '0 0 800 420'" role="img" aria-labelledby="robot-scene-title" :data-steering="steering">
-    <title id="robot-scene-title">Top-view robot and body coordinate frame. Move the pointer left or right to steer the front wheels.</title>
+    <title id="robot-scene-title">{{ zh ? '机器人俯视图与车体坐标系。左右移动鼠标可改变前轮转角。' : 'Top-view robot and body coordinate frame. Move the pointer left or right to steer the front wheels.' }}</title>
     <defs>
       <pattern id="scene-grid" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M30 0H0V30" fill="none" stroke="currentColor" stroke-width=".6" opacity=".1" /></pattern>
     </defs>
@@ -50,7 +53,7 @@ function steer(event: PointerEvent) {
     <rect :x="compact ? 25 : -110" y="22" :width="compact ? 480 : 750" height="350" rx="18" fill="url(#scene-grid)" />
     <path d="M65 323C150 315 152 243 240 226S360 155 443 77" class="trajectory" fill="none" stroke-width="2.5" stroke-dasharray="6 7" />
     <circle cx="65" cy="323" r="4" class="trajectory-dot" />
-    <text x="65" y="349" class="diagram-small">planned motion</text>
+    <text x="65" y="349" class="diagram-small">{{ zh ? '规划运动' : 'planned motion' }}</text>
     <g transform="translate(267 198) rotate(30)">
       <rect x="-63" y="-100" width="126" height="190" rx="20" class="robot-body" stroke-width="1.5" />
       <rect x="-45" y="-75" width="90" height="132" rx="11" class="robot-inset" />
@@ -66,14 +69,14 @@ function steer(event: PointerEvent) {
       <path d="M0-42-4.5-32H4.5ZM104 55 94 50.5V59.5Z" class="robot-origin" />
       <circle cy="55" r="5" class="robot-origin" />
     </g>
-    <path d="M309 95h80" class="annotation-line" /><text x="357" y="65" class="diagram-small">steering · δ</text>
-    <path d="M240 247H119" class="annotation-line" /><text :x="compact ? 25 : -70" y="236" class="diagram-small">pose · [x, y, θ]</text>
+    <path d="M309 95h80" class="annotation-line" /><text x="357" y="65" class="diagram-small">{{ zh ? '转向 · δ' : 'steering · δ' }}</text>
+    <path d="M240 247H119" class="annotation-line" /><text :x="compact ? 25 : -70" y="236" class="diagram-small">{{ zh ? '位姿 · [x, y, θ]' : 'pose · [x, y, θ]' }}</text>
     <g transform="translate(80 66)"><path d="M0 34V0M0 34H34" class="annotation-line" fill="none" /><text x="38" y="39" class="diagram-small">x</text><text x="-4" y="-8" class="diagram-small">y</text></g>
-    <rect x="275" y="313" width="225" height="47" rx="10" class="diagram-badge" /><circle cx="293" cy="337" r="3" class="trajectory-dot" /><text x="305" y="341" class="diagram-small">PARAMETERS → MOTION</text>
-    <text x="265" y="400" text-anchor="middle" class="diagram-caption">A clear view of the model beneath the motion.</text>
+    <rect x="275" y="313" width="225" height="47" rx="10" class="diagram-badge" /><circle cx="293" cy="337" r="3" class="trajectory-dot" /><text x="305" y="341" class="diagram-small">{{ zh ? '参数 → 运动' : 'PARAMETERS → MOTION' }}</text>
+    <text x="265" y="400" text-anchor="middle" class="diagram-caption">{{ zh ? '清晰呈现运动背后的模型。' : 'A clear view of the model beneath the motion.' }}</text>
     </g>
   </svg>
-  <svg v-else class="model-diagram" viewBox="0 0 200 140" role="img" :aria-label="variant === 'wheel' ? 'Differential-drive robot schematic' : 'Ackermann robot schematic'">
+  <svg v-else class="model-diagram" viewBox="0 0 200 140" role="img" :aria-label="variant === 'wheel' ? (zh ? '差速轮式机器人示意图' : 'Differential-drive robot schematic') : (zh ? '阿克曼机器人示意图' : 'Ackermann robot schematic')">
     <path d="M21 109H179M35 125V15" class="annotation-line" stroke-dasharray="3 5" opacity=".5" />
     <rect x="66" y="21" width="68" height="98" rx="11" class="robot-body" stroke-width="1.5" />
     <path d="M56 92H144" class="robot-axle" stroke-width="2" />

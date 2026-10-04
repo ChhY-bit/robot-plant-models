@@ -54,6 +54,9 @@ a, button, summary { -webkit-tap-highlight-color: transparent; }
 .VPNavBarSocialLinks { order: 13; }
 .VPNavBarTranslations { display: none; }
 .language-menu { position: relative; order: 11; margin: 0 13px; }
+:root:lang(zh-CN) { --vp-font-family-base: 'Inter', 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif; }
+/* Keep a single corresponding-page language menu on desktop and mobile. */
+.VPNavBarTranslations, .VPNavScreenTranslations, .VPNavBarExtra .translations { display: none !important; }
 .language-menu summary { display: flex; align-items: center; gap: 7px; cursor: pointer; font-size: 12px; font-weight: 500; list-style: none; color: var(--vp-c-text-2); }
 .language-menu summary::-webkit-details-marker { display: none; }
 .language-menu summary:hover { color: var(--vp-c-brand-1); }

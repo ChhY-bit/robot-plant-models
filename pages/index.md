@@ -3,7 +3,7 @@ layout: home
 title: Robot Plant Models
 rpmHero:
   eyebrow: OPEN-SOURCE MOBILE ROBOT MODELING
-  name: Robot Plant
+  name: Robot  Plant 
   accent: Models
   tagline: Understand the motion. Make the model yours.
   description: Explore transparent, customizable MATLAB plant models for mobile robots. From physical parameters to states and commands, every part is yours to inspect and adapt.

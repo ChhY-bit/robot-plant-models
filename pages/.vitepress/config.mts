@@ -6,7 +6,9 @@ import { scanSection, pageInfo, flattenNavigation, headingSlug } from './navigat
 const root = fileURLToPath(new URL('../', import.meta.url))
 const sidebar = {
   '/Get-Started/': scanSection(root, 'Get-Started'),
-  '/Robots/': scanSection(root, 'Robots')
+  '/Robots/': scanSection(root, 'Robots'),
+  '/zh/Get-Started/': scanSection(root, 'Get-Started', 'zh'),
+  '/zh/Robots/': scanSection(root, 'Robots', 'zh')
 }
 
 export default defineConfig({
@@ -18,7 +20,26 @@ export default defineConfig({
   lastUpdated: false,
   head: [['link', { rel: 'icon', type: 'image/svg+xml', href: `${project.base}mark.svg` }]],
   locales: Object.fromEntries(languages.map(language => [language.code, {
-    label: language.label, lang: language.lang
+    label: language.label, lang: language.lang,
+    ...(language.code === 'zh' ? {
+      description: '开源、可定制的 MATLAB 移动机器人仿真模型。',
+      themeConfig: {
+        nav: [
+          { text: '首页', link: '/zh/' },
+          { text: '入门指南', link: '/zh/Get-Started/Overview', activeMatch: '/zh/Get-Started/' },
+          { text: '机器人', link: '/zh/Robots/', activeMatch: '/zh/Robots/' },
+          { text: '常见问题', link: '/zh/FAQ/' },
+          { text: '版本发布', link: project.releases },
+          { text: '关于', link: '/zh/About/' }
+        ],
+        outline: { level: [2, 3], label: '本页目录' },
+        docFooter: { prev: '上一篇', next: '下一篇' },
+        footer: { message: 'Robot Plant Models · 开放模型，自由定制。' },
+        sidebarMenuLabel: '文档目录', returnToTopLabel: '返回顶部',
+        darkModeSwitchLabel: '切换主题', lightModeSwitchTitle: '切换为浅色模式',
+        darkModeSwitchTitle: '切换为深色模式', skipToContentLabel: '跳转到正文'
+      }
+    } : {})
   }])),
   themeConfig: {
     logo: '/mark.svg',
@@ -37,6 +58,18 @@ export default defineConfig({
       provider: 'local',
       options: {
         detailedView: true,
+        locales: {
+          zh: {
+            translations: {
+              button: { buttonText: '搜索文档', buttonAriaLabel: '搜索文档' },
+              modal: {
+                displayDetails: '显示详细结果', resetButtonTitle: '清除搜索',
+                backButtonTitle: '关闭搜索', noResultsText: '未找到相关结果',
+                footer: { selectText: '选择', navigateText: '切换', closeText: '关闭' }
+              }
+            }
+          }
+        },
         _render(source, env, md) {
           const html = md.render(source, env)
           const info = pageInfo(root, env.relativePath)
@@ -70,8 +103,10 @@ export default defineConfig({
     const info = pageInfo(root, page.relativePath)
     if (!page.frontmatter.title) page.title = info.title
     page.rpm = info
-    const section = page.relativePath.startsWith('Get-Started/') ? '/Get-Started/'
-      : page.relativePath.startsWith('Robots/') ? '/Robots/' : ''
+    const prefix = page.relativePath.startsWith('zh/') ? '/zh/' : '/'
+    const canonical = page.relativePath.replace(/^zh\//, '')
+    const section = canonical.startsWith('Get-Started/') ? `${prefix}Get-Started/`
+      : canonical.startsWith('Robots/') ? `${prefix}Robots/` : ''
     const documents = section ? flattenNavigation(sidebar[section]) : []
     const current = `/${page.relativePath.replace(/\.md$/, '')}`
     const position = documents.findIndex(item => item.link === current)

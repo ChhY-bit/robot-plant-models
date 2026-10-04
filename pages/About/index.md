@@ -16,4 +16,4 @@ Author information, contribution guidelines, citation instructions, and the fina
 
 ## Website languages
 
-The first website version is available in English. Future translations will mirror the English document tree in language directories, beginning with `pages/zh/` for Simplified Chinese.
+The website is available in English and Simplified Chinese. Chinese documents mirror the English tree under `pages/zh/`, using the same file names. Use the language menu to switch between corresponding pages.

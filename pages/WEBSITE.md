@@ -51,7 +51,7 @@ The first Markdown H1 becomes the page title above the prose; it is removed only
 
 Relative Markdown links are processed by VitePress. Moving a document may still break existing links and public URLs: update references and provide redirects where needed. `npm run check:links` checks the built pages and heading anchors, including the existing API cross-references.
 
-## Future languages
+## Website languages
 
 English keeps the existing paths. Translations mirror them, for example:
 
@@ -61,7 +61,11 @@ zh/Robots/Ackermann-Robot/API-Reference/Methods.md
 ja/Robots/Ackermann-Robot/API-Reference/Methods.md
 ```
 
-No `-zh` suffix is needed inside `zh/`. The first version exposes English only. When translations are ready, add language entries and their locale-specific navigation/UI text, generate each locale's sidebar with `scanSection(root, section, locale)`, and extend the language menu to switch between corresponding routes. Missing translations must provide an explicit English-original link, not silently masquerade as translated content. Translated heading anchors need separate checking.
+English and Simplified Chinese are enabled. No `-zh` suffix is needed inside `zh/`. The Chinese mirror includes all document routes, including this maintenance guide; empty English pages remain empty mirrors with a localized work-in-progress panel.
+
+The custom language menu switches to the corresponding page and preserves the current heading anchor. Chinese headings use explicit `{#original-anchor}` IDs so existing cross-references and language switches remain valid. Keep API identifiers, YAML keys, units, formulas, and executable examples unchanged when translating. Update both language versions when the API or source documentation changes; translations are maintained Markdown, not generated during the site build.
+
+To add another language, create its full mirror, register it in `.vitepress/languages.mjs`, add locale-specific navigation and UI strings in `.vitepress/config.mts` and the custom theme, and add its sidebars and canonical-path handling. Missing translations must provide an explicit English-original link, not silently masquerade as translated content. Run the navigation tests, production build, link checker, and browser smoke tests after changes.
 
 ## GitHub Pages
 
@@ -75,6 +79,6 @@ Adding the workflow does not publish from this local checkout. No commit, push, 
 - Installation, quickstart, and detailed modeling content in the existing empty documents.
 - FAQ answers, author information, contribution/citation instructions, and final license details.
 - Published release assets and verified MATLAB compatibility information.
-- Chinese content and interface translations, followed by other languages as needed.
+- Additional languages as needed; keep the existing English and Chinese mirrors synchronized.
 
 The website does not assert that a native Python/C library, a verified installer, or a specific software license is already available.
