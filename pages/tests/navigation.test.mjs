@@ -22,11 +22,13 @@ test('guides follow reading order rather than alphabetical order', () => {
   assert.equal(flattenNavigation(sections).length, 5)
 })
 
-test('robot references keep Introduction, Properties, Methods together', () => {
+test('robot references keep Introduction, Properties, Methods, Utils together', () => {
   const robots = scanSection(root, 'Robots')
   assert.deepEqual(robots.map(item => item.text), ['Ackermann Robot', 'Wheel Robot'])
-  assert.deepEqual(robots[0].items[0].items.map(item => item.text), ['Introduction', 'Properties', 'Methods'])
-  assert.equal(flattenNavigation(robots).length, 8)
+  for (const robot of robots) {
+    assert.deepEqual(robot.items[0].items.map(item => item.text), ['Introduction', 'Properties', 'Methods', 'Utils'])
+  }
+  assert.equal(flattenNavigation(robots).length, 10)
   assert.ok(flattenNavigation(robots).every(item => !item.link.endsWith('/index')))
 })
 
@@ -81,7 +83,9 @@ test('language switches preserve the canonical document and anchor', () => {
 test('Chinese sidebars and page titles are localized without crossing languages', () => {
   const robots = scanSection(root, 'Robots', 'zh')
   assert.deepEqual(robots.map(item => item.text), ['阿克曼机器人', '差速轮式机器人'])
-  assert.deepEqual(robots[0].items[0].items.map(item => item.text), ['简介', '属性', '方法'])
+  for (const robot of robots) {
+    assert.deepEqual(robot.items[0].items.map(item => item.text), ['简介', '属性', '方法', '工具函数'])
+  }
   assert.ok(flattenNavigation(robots).every(item => item.link.startsWith('/zh/Robots/')))
   const info = pageInfo(root, 'zh/Robots/Ackermann-Robot/API-Reference/Methods.md')
   assert.equal(info.title, '阿克曼机器人方法')

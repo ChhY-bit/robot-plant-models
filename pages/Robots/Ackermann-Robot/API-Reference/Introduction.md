@@ -8,6 +8,7 @@ Heading is measured counterclockwise from the world x-axis; positive virtual ste
 
 - [Properties](Properties.md): metadata, state layout, YAML parameters, held commands, and private simulation configuration.
 - [Methods](Methods.md): initialization, getters, configuration setters, command submission, integration, and velocity conversions.
+- [Utils](Utils.md): YAML parameter loading, validation, and configuration template export.
 - [Modeling](../Modeling/ackermann-robot-model.md): reserved for the detailed theoretical derivation; the page is not yet populated.
 
 ## 2. Basic Usage

@@ -8,6 +8,7 @@
 
 - [属性](Properties.md)：元数据、交错排列的状态、YAML 参数、保持轮速指令和私有仿真配置。
 - [方法](Methods.md)：初始化、读取、配置设置、指令发送、积分和车体速度与轮速转换。
+- [工具函数](Utils.md)：YAML 参数加载、校验和配置模板导出。
 - [模型理论](../Modeling/wheel-robot-model.md)：为详细理论推导预留，目前尚未编写。
 
 ## 2. 基本用法 {#2-basic-usage}

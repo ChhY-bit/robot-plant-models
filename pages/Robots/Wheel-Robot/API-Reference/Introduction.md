@@ -8,6 +8,7 @@ Heading is measured counterclockwise from the world x-axis, and positive wheel r
 
 - [Properties](Properties.md): metadata, the interleaved state layout, YAML parameters, held wheel commands, and private simulation configuration.
 - [Methods](Methods.md): initialization, getters, configuration setters, command submission, integration, and body/wheel velocity conversions.
+- [Utils](Utils.md): YAML parameter loading, validation, and configuration template export.
 - [Modeling](../Modeling/wheel-robot-model.md): reserved for the detailed theoretical derivation; the page is not yet populated.
 
 ## 2. Basic Usage
