@@ -27,10 +27,11 @@ fprintf('Pose: x=%f m, y=%f m, theta=%f rad\n', pose(1), pose(2), pose(3));
 
 ## 3. Optional Namespace Import
 
-All public classes and helper functions belong to the `rpm` namespace. The examples above use fully qualified names for clarity. To omit the `rpm.` prefix in your own code, place `import rpm.*` at the beginning of the script or function, or enter it at the command prompt:
+Public classes belong to `rpm`; shared helper functions belong to `rpm.utils`. The examples above use fully qualified names for clarity. To use short names, import both namespaces at the beginning of the script or function, or enter the imports at the command prompt. `import rpm.*` does not import the nested `rpm.utils` functions:
 
 ```matlab
 import rpm.*
+import rpm.utils.*
 params = load_wheel_params();
 robot = wheel_robot(params);
 robot.step(0.001);
@@ -38,4 +39,4 @@ robot.step(0.001);
 
 Imports apply to the scope where they are declared, not to every function or future MATLAB session. A command-window import does not replace imports inside functions; add an import where the short names are used. Importing also does not install the project or add it to the MATLAB search path. Object method calls such as `robot.step()` are unchanged.
 
-Wildcard imports can introduce name conflicts. Use `rpm.wheel_robot()` to identify the class unambiguously, or import only the required names, for example `import rpm.wheel_robot` and `import rpm.load_wheel_params`. For MATLAB's import and scope rules, see the [official `import` documentation](https://www.mathworks.com/help/matlab/ref/import.html).
+Wildcard imports can introduce name conflicts. Use `rpm.wheel_robot()` to identify the class unambiguously, or import only the required names, for example `import rpm.wheel_robot` and `import rpm.utils.load_wheel_params`. For MATLAB's import and scope rules, see the [official `import` documentation](https://www.mathworks.com/help/matlab/ref/import.html).

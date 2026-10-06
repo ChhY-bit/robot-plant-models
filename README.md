@@ -22,6 +22,8 @@ MATLAB R2024a has been verified. Earlier releases have not been tested.
 
 For a source checkout, run `setup` from `packaging/` instead. The script adds the project root to the search path; do not add `+rpm/` itself.
 
+Robot classes use the `rpm` namespace. Shared utilities for Ackermann, differential-drive, and humanoid robots live in `+rpm/+utils/` and use `rpm.utils`, for example `rpm.utils.load_wheel_params()` and `rpm.utils.load_urdf(file_path)`.
+
 ## Quick example
 
 ```matlab

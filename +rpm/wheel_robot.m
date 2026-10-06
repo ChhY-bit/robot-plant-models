@@ -44,14 +44,14 @@ classdef wheel_robot < handle
         function obj = wheel_robot(Params, Ini_States, Metadata)
             %WHEEL_ROBOT 创建并初始化差速机器人。
             %   obj = rpm.wheel_robot(Params, ini_states, Metadata) 创建对象。
-            %   三个入参均可省略或传 []，默认值依次为 rpm.load_wheel_params() 的结果、七维零状态和带默认描述字段的结构体。
+            %   三个入参均可省略或传 []，默认值依次为 rpm.utils.load_wheel_params() 的结果、七维零状态和带默认描述字段的结构体。
             %   Params 必须为包含上述物理字段的标量结构体，双轮参数可用标量表示左右相同，也可传入双元素向量并由构造函数转成列向量。
             %   ini_states 接受七元素行向量或列向量，排列顺序见 States 属性说明。
             %   电机时间常数为零时会发出警告并替换为 1e-3 s，其他有效值原样保留。
             %   初始轮速原样保留，maxWheelSpeed 仅约束 sendCmd 写入的目标轮速。
             %   默认目标轮速为零，因此初始非零轮速会逐渐衰减。
             if nargin < 1 || isempty(Params)
-                Params = rpm.load_wheel_params();
+                Params = rpm.utils.load_wheel_params();
             end
             Params = obj.validateParams(Params);
 

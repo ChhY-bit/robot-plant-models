@@ -76,7 +76,7 @@ The actual virtual front-wheel steering angle (rad) and virtual wheel angular sp
 
 The physical and display parameters of the Ackermann-Robot, stored in a private scalar structure. The ten fields below are all required: each corresponds to a top-level YAML key with exactly the same case-sensitive name. For example, YAML `wheelRadius: 0.1` becomes MATLAB `params.wheelRadius = 0.1` after loading; the YAML file does not contain a surrounding `Params:` key.
 
-When the constructor's `Params` argument is omitted or `[]`, `rpm.load_ackermann_params()` reads the project's `+rpm/config/ackermann_robot.yaml`. To use a custom file, call `rpm.load_ackermann_params(file_path)` and pass its returned structure to the constructor. Alternatively, supply a manually created structure containing all ten fields. Missing fields cause an error; individual missing values are not filled from the default YAML file.
+When the constructor's `Params` argument is omitted or `[]`, `rpm.utils.load_ackermann_params()` reads the project's `+rpm/config/ackermann_robot.yaml`. To use a custom file, call `rpm.utils.load_ackermann_params(file_path)` and pass its returned structure to the constructor. Alternatively, supply a manually created structure containing all ten fields. Missing fields cause an error; individual missing values are not filled from the default YAML file.
 
 The loader and constructor validate the parameters and normalize their numeric values to `double` scalars or column vectors. The loader preserves zero time constants; the constructor warns and replaces them with `1e-3` s. The **default** values below are the values in the bundled YAML template, rather than hard-coded per-field constructor defaults.
 
@@ -85,9 +85,9 @@ Parameters are copied into the object at construction. Editing the YAML file or 
 For example, export a template once, edit its values, then load it:
 
 ```matlab
-rpm.export_ackermann_params('my_ackermann.yaml'); % Refuses to overwrite an existing file.
+rpm.utils.export_ackermann_params('my_ackermann.yaml'); % Refuses to overwrite an existing file.
 % Edit my_ackermann.yaml before loading it.
-params = rpm.load_ackermann_params('my_ackermann.yaml');
+params = rpm.utils.load_ackermann_params('my_ackermann.yaml');
 params.wheelRadius = 0.12; % Optional in-memory override; does not edit the YAML.
 robot = rpm.ackermann_robot(params);
 actual_params = robot.getParams();

@@ -33,7 +33,7 @@
 
     ```matlab
     % Use custom parameters; left and right values may differ
-    Params = rpm.load_wheel_params();
+    Params = rpm.utils.load_wheel_params();
     Params.wheelRadius = [0.08; 0.12];
     robot = rpm.wheel_robot(Params);
     ```

@@ -1,9 +1,9 @@
 function file_path = export_wheel_params(file_path)
 %EXPORT_WHEEL_PARAMS 导出差速轮式机器人参数配置模板。
-%   FILE_PATH = EXPORT_WHEEL_PARAMS() 将内置 YAML 模板导出到当前工作
+%   FILE_PATH = rpm.utils.export_wheel_params() 将内置 YAML 模板导出到当前工作
 %   目录下的 wheel_robot.yaml，并返回目标文件的完整路径。
 %
-%   FILE_PATH = EXPORT_WHEEL_PARAMS(FILE_PATH) 将内置 YAML 模板导出到
+%   FILE_PATH = rpm.utils.export_wheel_params(FILE_PATH) 将内置 YAML 模板导出到
 %   指定位置。目标文件已存在时不会覆盖，而是抛出错误。
 
     arguments
@@ -15,7 +15,7 @@ function file_path = export_wheel_params(file_path)
     end
 
     function_dir = fileparts(mfilename("fullpath"));
-    source_path = fullfile(function_dir, "config", ...
+    source_path = fullfile(fileparts(function_dir), "config", ...
         "wheel_robot.yaml");
 
     if ~isfile(source_path)

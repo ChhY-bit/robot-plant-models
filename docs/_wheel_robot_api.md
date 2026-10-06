@@ -2,18 +2,20 @@
 
 本文件描述 `wheel_robot` 类对外暴露的全部接口：公共属性、构造函数、getter、配置方法、控制方法、仿真方法以及运动学换算工具。类内部的状态方程与推导见项目根目录下的 [fundamental.md](../fundamental.md)。
 
-文中**项目根目录**指代包含 `plants`、`config`、`utils`、`tests` 和 `docs` 的文件夹，其内部布局为：
+文中**项目根目录**指代包含 `+rpm`、`tests` 和 `docs` 的文件夹，其内部布局为：
 
-这个文件夹本身叫什么、放在哪块盘都可以。类内部用 `mfilename('fullpath')` 定位项目根目录，再读取 `config` 中的默认参数。保留各子目录的相对布局即可整体改名或搬家；`wheel_robot.m` 的文件名必须与类名一致。
+这个文件夹本身叫什么、放在哪块盘都可以。参数读取函数用 `mfilename('fullpath')` 定位 `+rpm/config` 中的默认参数。将项目根目录加入搜索路径后，类通过 `rpm.wheel_robot` 调用，共用工具函数通过 `rpm.utils` 调用；保留各子目录的相对布局即可整体改名或搬家。
 
 ```text
 <项目根目录>/
-├── plants/wheel_robot.m          本类
-├── config/wheel_robot.yaml       默认物理参数
-├── utils/load_wheel_params.m     参数读取
-├── utils/export_wheel_params.m   参数模板导出
+├── +rpm/
+│   ├── wheel_robot.m             本类
+│   ├── config/wheel_robot.yaml   默认物理参数
+│   └── +utils/
+│       ├── load_wheel_params.m   参数读取
+│       └── export_wheel_params.m 参数模板导出
 ├── tests/                       自检与仿真循环
-└── docs/wheel_robot_api.md       本文档
+└── docs/_wheel_robot_api.md      本文档
 ```
 
 ## 1. 模型与约定
@@ -35,10 +37,10 @@
 ## 2. 快速开始
 
 ```matlab
-% 在 MATLAB 中把类目录加入搜索路径（尖括号部分换成你本机的实际目录）
-addpath(fullfile('<项目根目录>', 'plants'));
+% 在 MATLAB 中把项目根目录加入搜索路径（尖括号部分换成实际目录）
+addpath('<项目根目录>');
 
-robot = wheel_robot();                 % 参数来自 config/wheel_robot.yaml
+robot = rpm.wheel_robot();                 % 参数来自 +rpm/config/wheel_robot.yaml
 robot.setWarnOnSaturation(false);      % 关闭限幅提示（可选）
 
 dt = 1e-3;
@@ -56,14 +58,14 @@ robot.getVel()       % 2x1 [v; omega]
 ## 3. 构造函数
 
 ```matlab
-obj = wheel_robot(Params, ini_states, Metadata)
+obj = rpm.wheel_robot(Params, ini_states, Metadata)
 ```
 
 三个入参都可以省略或传 `[]`：
 
 | 参数 | 是否必填 | 缺省值 | 说明 |
 | --- | --- | --- | --- |
-| `Params` | 否 | `load_wheel_params()` 的结果 | 标量结构体，物理参数，字段见第 10 节 |
+| `Params` | 否 | `rpm.utils.load_wheel_params()` 的结果 | 标量结构体，物理参数，字段见第 10 节 |
 | `ini_states` | 否 | `zeros(7,1)` | 7 元素实数行/列向量，有限，顺序见第 11 节；整数会被转成 `double` |
 | `Metadata` | 否 | `struct()` 补默认字段 | 标量结构体，纯描述信息，见第 4 节 |
 
@@ -72,43 +74,43 @@ obj = wheel_robot(Params, ini_states, Metadata)
 - `Params` 中的成对字段允许写成标量（左右相同），构造函数会扩展为 `2x1`；向量统一转成列向量；**额外的自定义字段会被保留**。
 - `motorTimeConstant` 中为 `0` 的元素会被警告后替换为 `1e-3`，其余正值原样保留。
 - 初始轮速原样保留，`maxWheelSpeed` 只约束 `sendCmd` 写入的目标值。构造后目标轮速默认是 `0`，所以**非零初始轮速会自然衰减到零**。
-- 默认参数通过项目内的 `utils/load_wheel_params.m` 读取 `config/wheel_robot.yaml`，构造函数会临时把 `utils` 加入搜索路径并在结束时移除。请保持 `plants`、`utils`、`config` 三者的相对位置不变，或者自己传入 `Params` 结构体。
+- 默认参数通过 `rpm.utils.load_wheel_params()` 读取 `+rpm/config/wheel_robot.yaml`。只需将项目根目录加入搜索路径，不要单独添加 `+rpm` 或 `+utils`；也可以自行传入 `Params` 结构体。
 
 常见构造方式：
 
 ```matlab
 % 全默认
-robot = wheel_robot();
+robot = rpm.wheel_robot();
 
 % 默认参数 + 自定义初始状态（车头朝 +y，已带 2 rad/s 左右轮速）
-robot = wheel_robot([], [0; 0; pi/2; 0; 2; 0; 2]);
+robot = rpm.wheel_robot([], [0; 0; pi/2; 0; 2; 0; 2]);
 
 % 读 YAML 后局部改写，再传入
-params = load_wheel_params();
+params = rpm.utils.load_wheel_params();
 params.wheelRadius       = [0.08; 0.12];
 params.motorTimeConstant = [0.1; 0.2];
 params.maxWheelSpeed     = [3.5; 5.5];
-robot = wheel_robot(params, zeros(7,1));
+robot = rpm.wheel_robot(params, zeros(7,1));
 
 % 指定另一份配置文件
-params = load_wheel_params("my_robot.yaml");   % 相对当前目录或写绝对路径
-robot  = wheel_robot(params);
+params = rpm.utils.load_wheel_params("my_robot.yaml");   % 相对当前目录或写绝对路径
+robot  = rpm.wheel_robot(params);
 ```
 
 如果需要创建自己的 YAML 配置文件，不必寻找或修改工具箱安装目录。可将内置标准模板导出到当前工作目录：
 
 ```matlab
-file_path = export_wheel_params();   % 生成当前目录下的 wheel_robot.yaml
+file_path = rpm.utils.export_wheel_params();   % 生成当前目录下的 wheel_robot.yaml
 edit(file_path);                     % 修改导出的副本
 
-params = load_wheel_params(file_path);
-robot  = wheel_robot(params);
+params = rpm.utils.load_wheel_params(file_path);
+robot  = rpm.wheel_robot(params);
 ```
 
 也可以指定导出位置：
 
 ```matlab
-file_path = export_wheel_params("config/my_robot.yaml");
+file_path = rpm.utils.export_wheel_params("config/my_robot.yaml");
 ```
 
 导出函数会保留模板中的中文注释和字段顺序。若目标已经存在，函数会报错且不会覆盖原文件。
@@ -295,7 +297,7 @@ robot.sendCmd(wheel_cmd(1), wheel_cmd(2));
 
 `bodySize`、`wheelWidth`、`axleOffset` 是几何显示参数，当前**不参与运动方程**；参与动力学与运动学的是前四个字段。
 
-默认值来自 [config/wheel_robot.yaml](../config/wheel_robot.yaml)：`wheelRadius = [0.10, 0.10]`、`trackWidth = 0.45`、`motorTimeConstant = [0.15, 0.15]`、`maxWheelSpeed = [20, 20]`、`bodySize = [0.60, 0.40, 0.20]`、`wheelWidth = [0.05, 0.05]`、`axleOffset = 0`。
+默认值来自 [+rpm/config/wheel_robot.yaml](../+rpm/config/wheel_robot.yaml)：`wheelRadius = [0.10, 0.10]`、`trackWidth = 0.45`、`motorTimeConstant = [0.15, 0.15]`、`maxWheelSpeed = [20, 20]`、`bodySize = [0.60, 0.40, 0.20]`、`wheelWidth = [0.05, 0.05]`、`axleOffset = 0`。
 
 **参数只能在构造时设定。** `getParams()` 返回的是副本，改它不会作用到对象上；需要换参数请用新 `Params` 重新构造，例如：
 
@@ -308,7 +310,7 @@ angle = robot.getWheelAngle();
 speed = robot.getWheelSpeed();
 z0    = [pose; angle(1); speed(1); angle(2); speed(2)];   % 顺序与 States 一致
 
-robot = wheel_robot(p, z0);
+robot = rpm.wheel_robot(p, z0);
 ```
 
 ## 11. 状态向量布局
@@ -334,9 +336,8 @@ robot = wheel_robot(p, z0);
 下面的写法与 `tests/test_wheel_loop.m` 一致：外层按 `dt` 推进仿真，每隔 `control_period` 重新下发一次指令。
 
 ```matlab
-% 类目录入路径；utils 目录只有需要直接调用 load_wheel_params 时才加
-addpath(fullfile('<项目根目录>', 'plants'));
-addpath(fullfile('<项目根目录>', 'utils'));
+% 项目根目录同时提供 rpm 类和 rpm.utils 工具函数
+addpath('<项目根目录>');
 
 dt              = 1e-4;      % 仿真步长 [s]
 simulation_time = 5;         % 仿真时长 [s]
@@ -344,7 +345,7 @@ control_period  = 0.1;       % 控制周期 [s]
 n_steps     = round(simulation_time / dt);
 n_ctrl_step = round(control_period / dt);
 
-robot = wheel_robot();
+robot = rpm.wheel_robot();
 time  = (0:n_steps) * dt;
 log   = zeros(7, n_steps + 1);
 log(:, 1) = robot.getStates();
@@ -381,13 +382,13 @@ snapshot.wheelAngle  = robot.getWheelAngle();
 | --- | --- | --- | --- |
 | `wheel_robot:InvalidSolutionMethod` | error | `setSolutionMethod` 入参非字符向量/字符串标量、为 `missing`、或不是 `euler`/`RK4` | 原配置保持不变，修正取值后重设 |
 | `wheel_robot:UnknownSolutionMethod` | error | 内部配置被改成未知值 | 重新调用 `setSolutionMethod` |
-| `wheel_robot:MissingParameter` | error | `Params` 缺少必需字段 | 补齐字段或改用 `load_wheel_params()` |
+| `wheel_robot:MissingParameter` | error | `Params` 缺少必需字段 | 补齐字段或改用 `rpm.utils.load_wheel_params()` |
 | `wheel_robot:ZeroMotorTimeConstant` | warning | 传入（或默认配置含）`motorTimeConstant = 0` | 该轮按 `1e-3 s` 计算，`dt` 需相应变小 |
 | `wheel_robot:CommandSaturated` | warning | `sendCmd` 目标轮速超出 `±maxWheelSpeed` | 用 `setWarnOnSaturation(false)` 静音，或减小指令 |
 | `wheel_robot:LargeStepSize` | warning | `max(dt./motorTimeConstant) > 0.1` | 减小 `dt`，或不要将时间常数设为 `0` 后依赖 `1e-3 s` 近似值 |
-| `wheel_robot:ParameterFileNotFound` | error | `load_wheel_params` 找不到 yaml | 检查路径或显式传入文件路径 |
-| `wheel_robot:TemplateFileNotFound` | error | `export_wheel_params` 找不到随工具箱安装的内置模板 | 检查安装包是否完整 |
-| `wheel_robot:ExportTargetExists` | error | `export_wheel_params` 的目标文件或目录已经存在 | 更换文件名，或自行确认后删除旧文件 |
+| `wheel_robot:ParameterFileNotFound` | error | `rpm.utils.load_wheel_params` 找不到 yaml | 检查路径或显式传入文件路径 |
+| `wheel_robot:TemplateFileNotFound` | error | `rpm.utils.export_wheel_params` 找不到随工具箱安装的内置模板 | 检查安装包是否完整 |
+| `wheel_robot:ExportTargetExists` | error | `rpm.utils.export_wheel_params` 的目标文件或目录已经存在 | 更换文件名，或自行确认后删除旧文件 |
 | `wheel_robot:ExportFailed` | error | 模板复制失败，例如父目录不存在或无写入权限 | 检查目标目录及其写入权限 |
 
 其余入参校验（维度、非有限、非正 `dt`、数值型 `wrap_heading` 等）由 MATLAB `validateattributes` 抛出，错误信息中会带上出错参数名。
@@ -396,10 +397,10 @@ snapshot.wheelAngle  = robot.getWheelAngle();
 
 | 分类 | 接口 | 一句话说明 |
 | --- | --- | --- |
-| 构造 | `wheel_robot(Params, ini_states, Metadata)` | 创建并初始化机器人，三个入参可省略 |
+| 构造 | `rpm.wheel_robot(Params, ini_states, Metadata)` | 创建并初始化机器人，三个入参可省略 |
 | 复位 | `reset([ini_states])` | 保留参数和配置，复位状态并清零保持指令 |
-| 参数 | `load_wheel_params([file_path])` | 获取默认参数结构体，或读取指定 YAML |
-| 参数 | `export_wheel_params([file_path])` | 将内置 YAML 模板导出到当前目录或指定位置 |
+| 参数 | `rpm.utils.load_wheel_params([file_path])` | 获取默认参数结构体，或读取指定 YAML |
+| 参数 | `rpm.utils.export_wheel_params([file_path])` | 将内置 YAML 模板导出到当前目录或指定位置 |
 | 属性 | `Metadata` | 描述信息结构体，可自由读写 |
 | 读取 | `getStates` / `getCmd` | 完整七维状态、当前保持的限幅后轮速指令 |
 | 读取 | `getPose` / `getVel` / `getPoseDot` | 位姿、车体速度、位姿变化率 |

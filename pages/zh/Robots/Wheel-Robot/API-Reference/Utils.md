@@ -1,10 +1,10 @@
 # 差速轮式机器人工具函数 {#wheel-robot-utils}
 
-这些 `rpm` 命名空间中的公共函数用于加载参数文件和导出配置模板。使用前，应将项目根目录（`+rpm/` 的父目录）添加到 MATLAB 搜索路径。它们是独立函数，不是机器人对象的方法。
+这些 `rpm.utils` 命名空间中的公共函数用于加载参数文件和导出配置模板。使用前，应将项目根目录（`+rpm/` 的父目录）添加到 MATLAB 搜索路径。它们是独立函数，不是机器人对象的方法。
 
 ## 1. 加载参数 {#1-load-parameters}
 
-### `rpm.load_wheel_params(file_path)` {#rpm-load-wheel-params}
+### `rpm.utils.load_wheel_params(file_path)` {#rpm-utils-load-wheel-params}
 
 读取、规范化并校验 YAML 参数文件。省略 `file_path` 或传入 `""` 时，读取内置的 `+rpm/config/wheel_robot.yaml`，不受当前工作目录影响。显式传入的相对路径以当前工作目录为基准。
 
@@ -17,15 +17,15 @@
     - `params`
         - 类型：标量 `struct`，包含下表全部必需字段，以 `double` 标量或列向量存储
         - 含义：可直接传入 `rpm.wheel_robot(params)` 的参数；不返回 YAML 中的额外字段
-- **另见：** [<u>属性 `Params`</u>](Properties.md#3-params), [<u>构造函数 `rpm.wheel_robot`</u>](Methods.md#rpm-wheel-robot), [<u>函数 `rpm.export_wheel_params`</u>](#rpm-export-wheel-params)
+- **另见：** [<u>属性 `Params`</u>](Properties.md#3-params), [<u>构造函数 `rpm.wheel_robot`</u>](Methods.md#rpm-wheel-robot), [<u>函数 `rpm.utils.export_wheel_params`</u>](#rpm-utils-export-wheel-params)
 - **用法：**
     ```matlab
-    params = rpm.load_wheel_params(); % Bundled defaults
+    params = rpm.utils.load_wheel_params(); % Bundled defaults
     params.wheelRadius = [0.08; 0.12];
     robot = rpm.wheel_robot(params);
 
     % Load a custom YAML file instead
-    params = rpm.load_wheel_params("my_wheel_robot.yaml");
+    params = rpm.utils.load_wheel_params("my_wheel_robot.yaml");
     robot = rpm.wheel_robot(params);
     ```
 
@@ -63,7 +63,7 @@ MATLAB 路径中存在 `readyaml` 时，加载函数使用它。否则，内置�
 
 ## 2. 导出参数 {#2-export-parameters}
 
-### `rpm.export_wheel_params(file_path)` {#rpm-export-wheel-params}
+### `rpm.utils.export_wheel_params(file_path)` {#rpm-utils-export-wheel-params}
 
 将内置的 `+rpm/config/wheel_robot.yaml` 模板连同注释复制到新文件。导出的是内置默认参数，不是已有机器人的当前参数。省略 `file_path` 或传入 `""` 时，在当前工作目录创建 `wheel_robot.yaml`。目标路径已有文件或目录时会拒绝导出，不会覆盖。
 
@@ -76,18 +76,18 @@ MATLAB 路径中存在 `readyaml` 时，加载函数使用它。否则，内置�
     - `file_path`
         - 类型：`1x1 string`
         - 含义：导出文件的完整路径，即使输入为相对路径
-- **另见：** [<u>函数 `rpm.load_wheel_params`</u>](#rpm-load-wheel-params), [<u>属性 `Params`</u>](Properties.md#3-params)
+- **另见：** [<u>函数 `rpm.utils.load_wheel_params`</u>](#rpm-utils-load-wheel-params), [<u>属性 `Params`</u>](Properties.md#3-params)
 - **用法：**
     ```matlab
-    file_path = rpm.export_wheel_params(); % Target must not exist
+    file_path = rpm.utils.export_wheel_params(); % Target must not exist
     % Edit the exported YAML file before loading it
-    params = rpm.load_wheel_params(file_path);
+    params = rpm.utils.load_wheel_params(file_path);
     robot = rpm.wheel_robot(params);
     ```
 
     ```matlab
     % Export to an existing parent directory with a new file name
-    file_path = rpm.export_wheel_params( ...
+    file_path = rpm.utils.export_wheel_params( ...
         fullfile(pwd, "my_wheel_robot.yaml"));
     ```
 

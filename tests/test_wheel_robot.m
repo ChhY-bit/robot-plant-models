@@ -4,7 +4,7 @@ function test_wheel_robot()
     test_dir = fileparts(mfilename('fullpath'));
     project_dir = fileparts(test_dir);
     addpath(project_dir);
-    params = rpm.load_wheel_params();
+    params = rpm.utils.load_wheel_params();
     params.wheelRadius = [0.08; 0.12];
     params.motorTimeConstant = [0.1; 0.2];
     params.maxWheelSpeed = [3.5; 5.5];
@@ -30,10 +30,10 @@ function test_wheel_robot()
     % 导出的 YAML 模板应能重新读入，且不得覆盖已有目标文件。
     exported_path = string(tempname) + ".yaml";
     exported_cleanup = onCleanup(@() delete_if_file(exported_path));
-    actual_path = rpm.export_wheel_params(exported_path);
+    actual_path = rpm.utils.export_wheel_params(exported_path);
     assert(isfile(actual_path));
-    assert(isequal(rpm.load_wheel_params(actual_path), rpm.load_wheel_params()));
-    must_reject(@() rpm.export_wheel_params(actual_path));
+    assert(isequal(rpm.utils.load_wheel_params(actual_path), rpm.utils.load_wheel_params()));
+    must_reject(@() rpm.utils.export_wheel_params(actual_path));
 
     for method = ["euler", "RK4"]
         row_robot = rpm.wheel_robot(params, 0:6);

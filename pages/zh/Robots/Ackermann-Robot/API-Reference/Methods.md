@@ -31,7 +31,7 @@
 
     ```matlab
     % Use custom parameters
-    Params = rpm.load_ackermann_params();   % get default parameters
+    Params = rpm.utils.load_ackermann_params();   % get default parameters
     Params.maxPhysicalSteeringAngle = 0.5;  % change parameter(s)
     robot = rpm.ackermann_robot(Params);    % use modified parameters
     ```

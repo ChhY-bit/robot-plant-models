@@ -1,9 +1,9 @@
 function file_path = export_ackermann_params(file_path)
 %EXPORT_ACKERMANN_PARAMS 导出阿克曼机器人参数配置模板。
-%   FILE_PATH = EXPORT_ACKERMANN_PARAMS() 将内置 YAML 模板导出到当前
+%   FILE_PATH = rpm.utils.export_ackermann_params() 将内置 YAML 模板导出到当前
 %   工作目录下的 ackermann_robot.yaml，并返回目标文件的完整路径。
 %
-%   FILE_PATH = EXPORT_ACKERMANN_PARAMS(FILE_PATH) 将内置 YAML 模板导出
+%   FILE_PATH = rpm.utils.export_ackermann_params(FILE_PATH) 将内置 YAML 模板导出
 %   到指定位置。目标文件或目录已存在时不会覆盖，而是抛出错误。
 
     arguments
@@ -15,7 +15,7 @@ function file_path = export_ackermann_params(file_path)
     end
 
     function_dir = fileparts(mfilename("fullpath"));
-    source_path = fullfile(function_dir, "config", ...
+    source_path = fullfile(fileparts(function_dir), "config", ...
         "ackermann_robot.yaml");
 
     if ~isfile(source_path)

@@ -1,10 +1,10 @@
 # Wheel-Robot Utils
 
-These public functions in the `rpm` namespace load parameter files and export configuration templates. Call them with the project root (the parent of `+rpm/`) on the MATLAB search path. They are standalone functions, not robot object methods.
+These public functions in the `rpm.utils` namespace load parameter files and export configuration templates. Call them with the project root (the parent of `+rpm/`) on the MATLAB search path. They are standalone functions, not robot object methods.
 
 ## 1. Load Parameters {#1-load-parameters}
 
-### `rpm.load_wheel_params(file_path)` {#rpm-load-wheel-params}
+### `rpm.utils.load_wheel_params(file_path)` {#rpm-utils-load-wheel-params}
 
 Read, normalize, and validate a YAML parameter file. Omit `file_path` or pass `""` to load the bundled `+rpm/config/wheel_robot.yaml`, regardless of the current working directory. An explicit relative path is resolved from the current working directory.
 
@@ -17,15 +17,15 @@ Read, normalize, and validate a YAML parameter file. Omit `file_path` or pass `"
     - `params`
         - type: scalar `struct` with all required fields below, stored as `double` scalars or column vectors
         - meaning: parameters that can be passed directly to `rpm.wheel_robot(params)`; additional YAML fields are not returned
-- **see also:** [<u>property `Params`</u>](Properties.md#3-params), [<u>constructor `rpm.wheel_robot`</u>](Methods.md#rpm-wheel-robot), [<u>function `rpm.export_wheel_params`</u>](#rpm-export-wheel-params)
+- **see also:** [<u>property `Params`</u>](Properties.md#3-params), [<u>constructor `rpm.wheel_robot`</u>](Methods.md#rpm-wheel-robot), [<u>function `rpm.utils.export_wheel_params`</u>](#rpm-utils-export-wheel-params)
 - **Usage:**
     ```matlab
-    params = rpm.load_wheel_params(); % Bundled defaults
+    params = rpm.utils.load_wheel_params(); % Bundled defaults
     params.wheelRadius = [0.08; 0.12];
     robot = rpm.wheel_robot(params);
 
     % Load a custom YAML file instead
-    params = rpm.load_wheel_params("my_wheel_robot.yaml");
+    params = rpm.utils.load_wheel_params("my_wheel_robot.yaml");
     robot = rpm.wheel_robot(params);
     ```
 
@@ -63,7 +63,7 @@ Errors from `readyaml`, file reading, and MATLAB argument validation may also pr
 
 ## 2. Export Parameters {#2-export-parameters}
 
-### `rpm.export_wheel_params(file_path)` {#rpm-export-wheel-params}
+### `rpm.utils.export_wheel_params(file_path)` {#rpm-utils-export-wheel-params}
 
 Copy the bundled `+rpm/config/wheel_robot.yaml` template, including its comments, to a new file. This exports bundled defaults, not an existing robot's current parameters. Omit `file_path` or pass `""` to create `wheel_robot.yaml` in the current working directory. Existing files and directories at the target path are rejected without overwriting.
 
@@ -76,18 +76,18 @@ Copy the bundled `+rpm/config/wheel_robot.yaml` template, including its comments
     - `file_path`
         - type: `1x1 string`
         - meaning: full path of the exported file, even if the input path was relative
-- **see also:** [<u>function `rpm.load_wheel_params`</u>](#rpm-load-wheel-params), [<u>property `Params`</u>](Properties.md#3-params)
+- **see also:** [<u>function `rpm.utils.load_wheel_params`</u>](#rpm-utils-load-wheel-params), [<u>property `Params`</u>](Properties.md#3-params)
 - **Usage:**
     ```matlab
-    file_path = rpm.export_wheel_params(); % Target must not exist
+    file_path = rpm.utils.export_wheel_params(); % Target must not exist
     % Edit the exported YAML file before loading it
-    params = rpm.load_wheel_params(file_path);
+    params = rpm.utils.load_wheel_params(file_path);
     robot = rpm.wheel_robot(params);
     ```
 
     ```matlab
     % Export to an existing parent directory with a new file name
-    file_path = rpm.export_wheel_params( ...
+    file_path = rpm.utils.export_wheel_params( ...
         fullfile(pwd, "my_wheel_robot.yaml"));
     ```
 

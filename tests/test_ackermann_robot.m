@@ -4,7 +4,7 @@ function test_ackermann_robot()
     project_dir = fileparts(test_dir);
     addpath(project_dir);
 
-    params = rpm.load_ackermann_params();
+    params = rpm.utils.load_ackermann_params();
     expected_fields = {'wheelRadius', 'wheelBase', 'trackWidth', ...
         'wheelTimeConstant', 'steeringTimeConstant', ...
         'maxPhysicalWheelSpeed', 'maxPhysicalSteeringAngle', ...
@@ -18,11 +18,11 @@ function test_ackermann_robot()
     % 导出的内置模板应可重新加载，且不得覆盖已有文件或目录。
     exported_path = string(tempname) + ".yaml";
     exported_cleanup = onCleanup(@() delete_if_file(exported_path));
-    actual_path = rpm.export_ackermann_params(exported_path);
+    actual_path = rpm.utils.export_ackermann_params(exported_path);
     assert(isfile(actual_path));
-    assert(isequal(rpm.load_ackermann_params(actual_path), params));
-    must_reject(@() rpm.export_ackermann_params(actual_path));
-    must_reject(@() rpm.export_ackermann_params(string(tempdir)));
+    assert(isequal(rpm.utils.load_ackermann_params(actual_path), params));
+    must_reject(@() rpm.utils.export_ackermann_params(actual_path));
+    must_reject(@() rpm.utils.export_ackermann_params(string(tempdir)));
 
     % 默认构造、行状态规范化和元数据默认字段。
     initial_states = int16([0, 1, 2, 0, 4]);
@@ -38,7 +38,7 @@ function test_ackermann_robot()
     zero_params.steeringTimeConstant = 0;
     yaml_path = write_params_yaml(zero_params);
     yaml_cleanup = onCleanup(@() delete_if_file(yaml_path));
-    loaded_zero_params = rpm.load_ackermann_params(yaml_path);
+    loaded_zero_params = rpm.utils.load_ackermann_params(yaml_path);
     assert(loaded_zero_params.wheelTimeConstant == 0);
     assert(loaded_zero_params.steeringTimeConstant == 0);
 
@@ -180,7 +180,7 @@ function test_ackermann_robot()
     assert(norm(actual_actuator-[0.001; 0.005]) < 1e-12);
 
     % 缺失字段、非法范围、错误维度和非法 YAML 都必须被拒绝。
-    must_reject(@() rpm.load_ackermann_params( ...
+    must_reject(@() rpm.utils.load_ackermann_params( ...
         fullfile(project_dir, '+rpm', 'config', 'missing.yaml')));
     must_reject(@() rpm.ackermann_robot(rmfield(params, 'wheelBase')));
     must_reject(@() rpm.ackermann_robot(params, zeros(6, 1)));
@@ -221,7 +221,7 @@ function test_ackermann_robot()
     invalid_yaml_path = string(tempname) + ".yaml";
     invalid_cleanup = onCleanup(@() delete_if_file(invalid_yaml_path));
     writelines(invalid_yaml, invalid_yaml_path);
-    must_reject(@() rpm.load_ackermann_params(invalid_yaml_path));
+    must_reject(@() rpm.utils.load_ackermann_params(invalid_yaml_path));
 
     disp('ackermann_robot regression checks passed');
 end

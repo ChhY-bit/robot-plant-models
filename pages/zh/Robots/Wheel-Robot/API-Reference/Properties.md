@@ -88,18 +88,18 @@
 
 轮式机器人的物理及显示参数，以私有标量结构体保存。下列七个字段均为必需字段，每个字段都对应大小写完全一致的顶层 YAML 键。例如，YAML 的 `wheelRadius: [0.10, 0.12]` 加载后成为 MATLAB 的 `params.wheelRadius = [0.10; 0.12]`；YAML 文件不包含外层 `Params:` 键。
 
-构造函数的 `Params` 参数省略或为 `[]` 时，`rpm.load_wheel_params()` 会读取项目的 `+rpm/config/wheel_robot.yaml`。如需使用自定义文件，调用 `rpm.load_wheel_params(file_path)` 并将返回的结构体传入构造函数；也可手动创建包含全部七个字段的标量结构体。缺失字段会报错，不会从默认 YAML 中逐项补齐。
+构造函数的 `Params` 参数省略或为 `[]` 时，`rpm.utils.load_wheel_params()` 会读取项目的 `+rpm/config/wheel_robot.yaml`。如需使用自定义文件，调用 `rpm.utils.load_wheel_params(file_path)` 并将返回的结构体传入构造函数；也可手动创建包含全部七个字段的标量结构体。缺失字段会报错，不会从默认 YAML 中逐项补齐。
 
 `wheelRadius`、`motorTimeConstant`、`maxWheelSpeed` 和 `wheelWidth` 可以使用标量表示两轮相同的数值，也可使用二元素行向量或列向量指定 `[left; right]`。加载函数和构造函数将这些字段规范为 `2x1 double` 向量，将 `bodySize` 规范为 `3x1 double` 向量，其余必需字段规范为 double 标量。加载函数保留零时间常数；构造函数会警告，并仅将零元素替换为 `1e-3` s。下文的**默认值**来自随附的 YAML 模板，而非构造函数中逐字段硬编码的默认值。
 
-参数在构造时复制到对象中。之后修改 YAML 文件、原结构体或 `getParams()` 返回的副本，不会更新已有机器人。要应用新的物理参数，请创建新对象；`reset()` 保留原参数。手动传入结构体的额外字段会由构造函数保留，但 `rpm.load_wheel_params()` 只返回七个已识别字段。YAML 参数文件不配置 `Metadata`、`States`、`Cmd` 或 `Config`。
+参数在构造时复制到对象中。之后修改 YAML 文件、原结构体或 `getParams()` 返回的副本，不会更新已有机器人。要应用新的物理参数，请创建新对象；`reset()` 保留原参数。手动传入结构体的额外字段会由构造函数保留，但 `rpm.utils.load_wheel_params()` 只返回七个已识别字段。YAML 参数文件不配置 `Metadata`、`States`、`Cmd` 或 `Config`。
 
 例如，先导出模板，编辑数值，再加载：
 
 ```matlab
-rpm.export_wheel_params('my_wheel.yaml'); % Refuses to overwrite an existing file.
+rpm.utils.export_wheel_params('my_wheel.yaml'); % Refuses to overwrite an existing file.
 % Edit my_wheel.yaml before loading it.
-params = rpm.load_wheel_params('my_wheel.yaml');
+params = rpm.utils.load_wheel_params('my_wheel.yaml');
 params.wheelRadius = [0.08; 0.12]; % Optional in-memory override; does not edit the YAML.
 robot = rpm.wheel_robot(params);
 actual_params = robot.getParams();

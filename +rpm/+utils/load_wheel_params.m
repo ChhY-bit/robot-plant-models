@@ -1,15 +1,12 @@
-function params = load_ackermann_params(file_path)
-%LOAD_ACKERMANN_PARAMS 从 YAML 文件读取并校验阿克曼机器人参数。
-%   PARAMS = LOAD_ACKERMANN_PARAMS() 读取项目 config 目录下的
-%   ackermann_robot.yaml。
+function params = load_wheel_params(file_path)
+%LOAD_WHEEL_PARAMS 从 YAML 文件读取并校验差速轮式机器人参数。
+%   PARAMS = rpm.utils.load_wheel_params() 读取 +rpm/config 目录下的
+%   wheel_robot.yaml。
 %
-%   PARAMS = LOAD_ACKERMANN_PARAMS(FILE_PATH) 读取指定 YAML 文件。
+%   PARAMS = rpm.utils.load_wheel_params(FILE_PATH) 读取指定 YAML 文件。
 %
 %   返回值 PARAMS 是普通 MATLAB 结构体，可直接传入：
-%       robot = rpm.ackermann_robot(params, initial_states);
-%
-%   本函数只解析、规范化并校验配置，不替换零时间常数。零时间常数
-%   的警告和替换由 ackermann_robot 构造函数负责。
+%       robot = rpm.wheel_robot(params, initial_states);
 
     arguments
         file_path (1, 1) string = ""
@@ -17,12 +14,12 @@ function params = load_ackermann_params(file_path)
 
     if strlength(file_path) == 0
         function_dir = fileparts(mfilename("fullpath"));
-        file_path = fullfile(function_dir, "config", ...
-            "ackermann_robot.yaml");
+        file_path = fullfile(fileparts(function_dir), "config", ...
+            "wheel_robot.yaml");
     end
 
     if ~isfile(file_path)
-        error("ackermann_robot:ParameterFileNotFound", ...
+        error("wheel_robot:ParameterFileNotFound", ...
             "找不到机器人参数文件：%s", file_path);
     end
 
@@ -35,35 +32,22 @@ function params = load_ackermann_params(file_path)
     end
 
     params = struct();
-    params.wheelRadius = normalize_scalar( ...
+    params.wheelRadius = normalize_pair( ...
         require_field(yaml_data, "wheelRadius"), "wheelRadius", false);
-    params.wheelBase = normalize_scalar( ...
-        require_field(yaml_data, "wheelBase"), "wheelBase", false);
     params.trackWidth = normalize_scalar( ...
         require_field(yaml_data, "trackWidth"), "trackWidth", false);
-    params.wheelTimeConstant = normalize_scalar( ...
-        require_field(yaml_data, "wheelTimeConstant"), ...
-        "wheelTimeConstant", true);
-    params.steeringTimeConstant = normalize_scalar( ...
-        require_field(yaml_data, "steeringTimeConstant"), ...
-        "steeringTimeConstant", true);
-    params.maxPhysicalWheelSpeed = normalize_scalar( ...
-        require_field(yaml_data, "maxPhysicalWheelSpeed"), ...
-        "maxPhysicalWheelSpeed", false);
-    params.maxPhysicalSteeringAngle = normalize_scalar( ...
-        require_field(yaml_data, "maxPhysicalSteeringAngle"), ...
-        "maxPhysicalSteeringAngle", false);
-    if params.maxPhysicalSteeringAngle >= pi / 2
-        error("ackermann_robot:InvalidParameterValue", ...
-            "参数 'maxPhysicalSteeringAngle' 必须小于 pi/2 rad。");
-    end
+    params.motorTimeConstant = normalize_pair( ...
+        require_field(yaml_data, "motorTimeConstant"), ...
+        "motorTimeConstant", true);
+    params.maxWheelSpeed = normalize_pair( ...
+        require_field(yaml_data, "maxWheelSpeed"), "maxWheelSpeed", false);
 
     params.bodySize = normalize_vector( ...
         require_field(yaml_data, "bodySize"), "bodySize", 3, false);
-    params.wheelWidth = normalize_scalar( ...
+    params.wheelWidth = normalize_pair( ...
         require_field(yaml_data, "wheelWidth"), "wheelWidth", false);
-    params.rearAxleOffset = normalize_finite_scalar( ...
-        require_field(yaml_data, "rearAxleOffset"), "rearAxleOffset");
+    params.axleOffset = normalize_finite_scalar( ...
+        require_field(yaml_data, "axleOffset"), "axleOffset");
 end
 
 function data = read_flat_numeric_yaml(file_path)
@@ -83,7 +67,7 @@ function data = read_flat_numeric_yaml(file_path)
 
         colon_index = strfind(line, ":");
         if isempty(colon_index)
-            error("ackermann_robot:InvalidYAML", ...
+            error("wheel_robot:InvalidYAML", ...
                 "YAML 第 %d 行缺少冒号分隔符。", line_index);
         end
 
@@ -92,28 +76,22 @@ function data = read_flat_numeric_yaml(file_path)
         value_text = strtrim(extractAfter(line, colon_index));
 
         if field_name == "" || ~isvarname(field_name)
-            error("ackermann_robot:InvalidYAML", ...
+            error("wheel_robot:InvalidYAML", ...
                 "YAML 第 %d 行包含无效字段名 '%s'。", ...
                 line_index, field_name);
         end
 
         if value_text == ""
-            error("ackermann_robot:UnsupportedYAML", ...
+            error("wheel_robot:UnsupportedYAML", ...
                 "YAML 第 %d 行的字段 '%s' 没有行内数值。" + ...
                 "当前回退读取器不支持嵌套 YAML。", ...
-                line_index, field_name);
-        end
-
-        if isfield(data, field_name)
-            error("ackermann_robot:DuplicateParameter", ...
-                "YAML 第 %d 行重复定义了字段 '%s'。", ...
                 line_index, field_name);
         end
 
         try
             value = jsondecode(value_text);
         catch cause
-            exception = MException("ackermann_robot:InvalidYAMLValue", ...
+            exception = MException("wheel_robot:InvalidYAMLValue", ...
                 "无法解析 YAML 第 %d 行中字段 '%s' 的数值。", ...
                 line_index, field_name);
             exception = addCause(exception, cause);
@@ -121,7 +99,7 @@ function data = read_flat_numeric_yaml(file_path)
         end
 
         if ~isnumeric(value)
-            error("ackermann_robot:UnsupportedYAMLValue", ...
+            error("wheel_robot:UnsupportedYAMLValue", ...
                 "YAML 字段 '%s' 必须是数值标量或数值数组。", field_name);
         end
 
@@ -134,11 +112,27 @@ function value = require_field(data, field_name)
     try
         value = data.(field_name);
     catch cause
-        exception = MException("ackermann_robot:MissingParameter", ...
+        exception = MException("wheel_robot:MissingParameter", ...
             "YAML 参数文件缺少必需字段 '%s'。", field_name);
         exception = addCause(exception, cause);
         throw(exception);
     end
+end
+
+function value = normalize_pair(value, field_name, allow_zero)
+%NORMALIZE_PAIR 将标量或双元素参数规范为 2×1 列向量。
+    value = to_numeric(value, field_name);
+
+    if isscalar(value)
+        value = repmat(value, 2, 1);
+    elseif numel(value) == 2
+        value = value(:);
+    else
+        error("wheel_robot:InvalidParameterSize", ...
+            "参数 '%s' 必须是标量或包含两个元素。", field_name);
+    end
+
+    validate_range(value, field_name, allow_zero);
 end
 
 function value = normalize_vector(value, field_name, element_count, allow_zero)
@@ -146,7 +140,7 @@ function value = normalize_vector(value, field_name, element_count, allow_zero)
     value = to_numeric(value, field_name);
 
     if ~isvector(value) || numel(value) ~= element_count
-        error("ackermann_robot:InvalidParameterSize", ...
+        error("wheel_robot:InvalidParameterSize", ...
             "参数 '%s' 必须包含 %d 个元素。", field_name, element_count);
     end
 
@@ -159,7 +153,7 @@ function value = normalize_scalar(value, field_name, allow_zero)
     value = to_numeric(value, field_name);
 
     if ~isscalar(value)
-        error("ackermann_robot:InvalidParameterSize", ...
+        error("wheel_robot:InvalidParameterSize", ...
             "参数 '%s' 必须是标量。", field_name);
     end
 
@@ -171,7 +165,7 @@ function value = normalize_finite_scalar(value, field_name)
     value = to_numeric(value, field_name);
 
     if ~isscalar(value)
-        error("ackermann_robot:InvalidParameterSize", ...
+        error("wheel_robot:InvalidParameterSize", ...
             "参数 '%s' 必须是标量。", field_name);
     end
 end
@@ -182,7 +176,7 @@ function value = to_numeric(value, field_name)
         try
             value = cell2mat(value);
         catch cause
-            exception = MException("ackermann_robot:InvalidParameterType", ...
+            exception = MException("wheel_robot:InvalidParameterType", ...
                 "参数 '%s' 必须由数值组成。", field_name);
             exception = addCause(exception, cause);
             throw(exception);
@@ -190,14 +184,14 @@ function value = to_numeric(value, field_name)
     end
 
     if ~isnumeric(value)
-        error("ackermann_robot:InvalidParameterType", ...
+        error("wheel_robot:InvalidParameterType", ...
             "参数 '%s' 必须是数值。", field_name);
     end
 
     value = double(value);
 
     if ~isreal(value) || any(~isfinite(value), "all")
-        error("ackermann_robot:InvalidParameterValue", ...
+        error("wheel_robot:InvalidParameterValue", ...
             "参数 '%s' 必须是有限实数。", field_name);
     end
 end
@@ -213,7 +207,7 @@ function validate_range(value, field_name, allow_zero)
     end
 
     if invalid
-        error("ackermann_robot:InvalidParameterValue", ...
+        error("wheel_robot:InvalidParameterValue", ...
             "参数 '%s' 必须全部为%s。", field_name, requirement);
     end
 end

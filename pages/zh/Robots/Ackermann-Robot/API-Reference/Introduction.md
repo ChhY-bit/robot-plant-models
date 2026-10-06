@@ -27,10 +27,11 @@ fprintf('Pose: x=%f m, y=%f m, theta=%f rad\n', pose(1), pose(2), pose(3));
 
 ## 3. 可选的命名空间导入 {#3-optional-namespace-import}
 
-所有公开类和辅助函数均属于 `rpm` 命名空间。上面的示例使用完整名称以避免歧义。如需省略 `rpm.` 前缀，可在脚本或函数开头写入 `import rpm.*`，或在命令窗口中执行：
+公开类属于 `rpm`，共用工具函数属于 `rpm.utils`。上面的示例使用完整名称以避免歧义。如需使用短名称，可在脚本或函数开头导入两个命名空间，或在命令窗口中执行。`import rpm.*` 不会导入子包 `rpm.utils` 中的函数：
 
 ```matlab
 import rpm.*
+import rpm.utils.*
 params = load_ackermann_params();
 robot = ackermann_robot(params);
 robot.step(0.001);
@@ -38,4 +39,4 @@ robot.step(0.001);
 
 导入仅作用于声明它的作用域，不会自动应用到所有函数或未来 MATLAB 会话。命令窗口的导入不能代替函数内的导入；在哪个作用域使用短名称，就应在那里导入。导入也不会安装项目或将其加入搜索路径。`robot.step()` 等对象方法调用不变。
 
-通配符导入可能造成名称冲突。可使用 `rpm.ackermann_robot()` 明确指定类，或只导入需要的名称，例如 `import rpm.ackermann_robot` 和 `import rpm.load_ackermann_params`。MATLAB 的导入与作用域规则见[官方 `import` 文档](https://www.mathworks.com/help/matlab/ref/import.html)。
+通配符导入可能造成名称冲突。可使用 `rpm.ackermann_robot()` 明确指定类，或只导入需要的名称，例如 `import rpm.ackermann_robot` 和 `import rpm.utils.load_ackermann_params`。MATLAB 的导入与作用域规则见[官方 `import` 文档](https://www.mathworks.com/help/matlab/ref/import.html)。
