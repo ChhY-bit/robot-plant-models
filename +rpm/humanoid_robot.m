@@ -3,17 +3,25 @@ classdef humanoid_robot < handle
     %   此处显示详细说明
 
     %% ===============   ===============
-    properties (Access=public)
+    properties (SetAccess=private)
         urdf
+        kinematicTree
+    end
+
+    properties (Access=private)
         base
-            % .xyz
-            % .rpy
-            % 
+            % .world_pos
+            % .world_vel
+            % .world_rpy
+            % .body_vel
+                % .linear
+                % .angular
         joints
-            % .axis
             % .body_ang
             % .body_vel
-            % .world_xyz
+                % .linear
+                % .angular
+            % .world_pos
             % .world_rpy
         links
     end
@@ -24,6 +32,7 @@ classdef humanoid_robot < handle
             %UNTITLED 构造此类的实例
             %   此处显示详细说明
             obj.urdf = urdf;
+            obj.kinematicTree_Init();
         end
 
         function fig = show_frames(obj,T0,current_index,fig)
@@ -112,6 +121,16 @@ classdef humanoid_robot < handle
         end
     end
 
+    %% 
+    methods (Access=private)
+        function kinematicTree_Init(obj)
+            obj.kinematicTree.basezJointIndex
+            obj.kinematicTree.parentJointIndex_of
+            obj.kinematicTree.childJointIndex_of
+            obj.kinematicTree.parentLinkIndex_of
+            obj.kinematicTree.childLinkIndex_of
+        end
+    end
     %% ===============   ===============
     methods (Static, Access=private)
         function transform = origin_to_transform(origin)
