@@ -1,230 +1,56 @@
 classdef humanoid_robot < handle
-    %UNTITLED 此处显示有关此类的摘要
-    %   此处显示详细说明
-
-    %% ===============   ===============
-    properties (SetAccess=private)
-        urdf
-        kinematicTree
+    properties(Access=public)
+        Metadata
+    end
+    properties(SetAccess = private)
+        Tree
     end
 
-    properties (Access=private)
-        base
-            % .world_pos
-            % .world_vel
-            % .world_rpy
-            % .body_vel
-                % .linear
-                % .angular
-        joints
-            % .body_ang
-            % .body_vel
-                % .linear
-                % .angular
-            % .world_pos
-            % .world_rpy
-        links
-    end
-
-    %% ===============   ===============
-    methods (Access=public)
+    methods
         function obj = humanoid_robot(urdf)
-            %UNTITLED 构造此类的实例
-            %   此处显示详细说明
-            obj.urdf = urdf;
-            obj.kinematicTree_Init();
+            obj.Tree = rpm.chain.robotTree(urdf);
         end
 
-        function fig = show_frames(obj,T0,current_index,fig)
-            %SHOW_FRAMES 绘制零关节位移下的连杆坐标系，返回图窗句柄。
-            %   show_frames() 从根开始，根的世界位姿为单位变换。
-            %   show_frames(T0,current_index,fig) 绘制指定子树；T0 是
-            %   起始连杆的世界位姿。传 [] 可使用各参数的默认值。
-            if nargin < 2 || isempty(T0)
+        function kinematic_update(obj)
+            obj.Tree.baseLink.world_T = eye(4);
+            obj.kinematic_recurse(obj.Tree.baseLink)
+        end
+    end
+
+    methods(Access=private)
+        function kinematic_recurse(obj,link_node)
+        % 前向更新所有位姿
+            parent = link_node.parentJoint;
+            if ~isempty(parent) % 有父joint
+                T = eye(4);
+                switch parent.description.type
+                    case "fixed"
+                    case {"revolute","continuous"}
+                        T(1:3,1:3) = rpm.utils.axis2rot(parent.description.axis,parent.q);
+                    case "prismatic" 
+                        T(1:3,4) = parent.description.axis * parent.q;
+                    otherwise
+                        error("不支持该关节类型：%s",parent.description.type);
+                end
+                link_node.world_T = parent.world_T * T;     % 基于父joint系与关节变量
+            end
+
+            joint_node = link_node.childJoint;
+            if isempty(joint_node)
+                return    % 到达末端，递归出口
+            end
+            
+            joint_num = size(joint_node,1);
+            for i = 1:joint_num
+                rpy = joint_node(i).description.origin.rpy;
+                xyz = joint_node(i).description.origin.xyz;
                 T0 = eye(4);
+                T0(1:3,1:3) = rpm.utils.rpy2rot(rpy);
+                T0(1:3,4) = xyz;
+                joint_node(i).world_T = link_node.world_T*T0;   % 基于父link系与静态urdf
+                obj.kinematic_recurse(joint_node(i).childLink)
             end
-            if nargin < 3 || isempty(current_index)
-                current_index = obj.urdf.rootLinkIndex;
-            end
-            validateattributes(T0, {'numeric'}, ...
-                {'real','finite','size',[4,4]}, mfilename, 'T0');
-            T0 = double(T0);
-            if norm(T0(4,:) - [0,0,0,1]) > 1e-10
-                error('rpm:humanoid_robot:InvalidTransform', ...
-                    'T0 的最后一行必须为 [0,0,0,1]。');
-            end
-            obj.validate_rotation(T0(1:3,1:3));
-            link_count = numel(obj.urdf.links);
-            validateattributes(current_index, {'numeric'}, ...
-                {'real','finite','scalar','integer','>=',1,'<=',link_count}, ...
-                mfilename, 'current_index');
-            if nargin < 4, fig = []; end
-            if ~isempty(fig) && (~isscalar(fig) || ~isgraphics(fig, 'figure'))
-                error('rpm:humanoid_robot:InvalidFigure', 'fig 必须为有效的标量图窗句柄。');
-            end
-            % Resolve names and local transforms once, outside the traversal.
-            names = [obj.urdf.links.name];
-            if numel(unique(names)) ~= link_count || any(strlength(names) == 0)
-                error('rpm:humanoid_robot:InvalidTopology', '连杆名称必须非空且唯一。');
-            end
-            children = cell(link_count,1);
-            joint_count = numel(obj.urdf.joints);
-            local = repmat(eye(4),1,1,joint_count);
-            child_links = zeros(joint_count,1);
-            if joint_count > 0
-                if any(arrayfun(@(j) isempty(j.parent) || isempty(j.child), obj.urdf.joints))
-                    error('rpm:humanoid_robot:InvalidTopology', '关节必须指定父、子连杆。');
-                end
-                [parent_found, parents] = ismember([obj.urdf.joints.parent],names);
-                [child_found, child_links] = ismember([obj.urdf.joints.child],names);
-                if ~all(parent_found) || ~all(child_found) || ...
-                        any(parents == child_links) || numel(unique(child_links)) ~= joint_count
-                    error('rpm:humanoid_robot:InvalidTopology', ...
-                        '关节引用无效、自连接或存在多个父关节。');
-                end
-                for j = 1:joint_count
-                    children{parents(j)}(end+1) = j;
-                    local(:,:,j) = obj.origin_to_transform(obj.urdf.joints(j).origin);
-                end
-            end
-            % Explicit queue avoids MATLAB's recursion depth limit. Every child
-            % still uses the same accumulated relation: T_world_child=T0*T.
-            order = zeros(link_count,1);
-            transforms = zeros(4,4,link_count);
-            visited = false(link_count,1);
-            order(1) = current_index;
-            transforms(:,:,1) = T0;
-            visited(current_index) = true;
-            head = 1; tail = 1;
-            while head <= tail
-                for j = children{order(head)}
-                    child = child_links(j);
-                    if visited(child)
-                        error('rpm:humanoid_robot:InvalidTopology', '检测到连杆连接环。');
-                    end
-                    tail = tail + 1;
-                    order(tail) = child;
-                    transforms(:,:,tail) = transforms(:,:,head) * local(:,:,j);
-                    visited(child) = true;
-                end
-                head = head + 1;
-            end
-            if current_index == obj.urdf.rootLinkIndex && ~all(visited)
-                error('rpm:humanoid_robot:InvalidTopology', '存在不能从根连杆到达的连杆。');
-            end
-            % Compute all poses before creating or modifying a figure.
-            if isempty(fig), fig = figure(); end
-            ax = get(fig, 'CurrentAxes');
-            if isempty(ax), ax = axes('Parent',fig); end
-            positions = reshape(transforms(1:3,4,1:tail),3,tail);
-            obj.draw_frames(ax,positions,transforms(1:3,1:3,1:tail),0.02);
-        end
-    end
 
-    %% 
-    methods (Access=private)
-        function kinematicTree_Init(obj)
-            obj.kinematicTree.basezJointIndex
-            obj.kinematicTree.parentJointIndex_of
-            obj.kinematicTree.childJointIndex_of
-            obj.kinematicTree.parentLinkIndex_of
-            obj.kinematicTree.childLinkIndex_of
-        end
-    end
-    %% ===============   ===============
-    methods (Static, Access=private)
-        function transform = origin_to_transform(origin)
-            xyz = zeros(3,1); rpy = zeros(3,1);
-            if ~isempty(origin)
-                if ~isempty(origin.xyz), xyz = origin.xyz; end
-                if ~isempty(origin.rpy), rpy = origin.rpy; end
-            end
-            validateattributes(xyz, {'numeric'}, ...
-                {'real','finite','vector','numel',3}, mfilename, 'origin.xyz');
-            transform = [rpm.humanoid_robot.rpy_to_rotation(rpy), double(xyz(:)); 0,0,0,1];
-        end
-
-        function draw_frames(ax,positions,rotations,scale)
-            was_held = ishold(ax);
-            restore_hold = onCleanup(@() rpm.humanoid_robot.restore_frame_hold(ax,was_held));
-            hold(ax,'on');
-            colors = eye(3);
-            for i = 1:3
-                directions = scale * reshape(rotations(:,i,:),3,[]);
-                quiver3(ax,positions(1,:),positions(2,:),positions(3,:), ...
-                    directions(1,:),directions(2,:),directions(3,:),0, ...
-                    'Color',colors(i,:),'LineWidth',1.5,'MaxHeadSize',0.2, ...
-                    'Tag','rpm.humanoid_robot.frame');
-            end
-            axis(ax,'equal'); grid(ax,'on'); view(ax,3);
-        end
-
-        function validate_rotation(rotation)
-            validateattributes(rotation, {'numeric'}, ...
-                {'real','finite','size',[3,3]}, mfilename, 'rotation');
-            rotation = double(rotation);
-            if norm(rotation.' * rotation - eye(3),'fro') > 1e-6 || ...
-                    abs(det(rotation)-1) > 1e-6
-                error('rpm:humanoid_robot:InvalidRotationMatrix', ...
-                    'rotation 必须为正交且行列式为 +1 的 3x3 旋转矩阵（容差 1e-6）。');
-            end
-        end
-
-        function rotation = rotx(angle)
-            %ROTX 绕 X 轴的主动旋转矩阵，输入单位为弧度。
-            validateattributes(angle, {'numeric'}, ...
-                {'real','finite','scalar'}, mfilename, 'angle');
-            c = cos(double(angle)); s = sin(double(angle));
-            rotation = [1,0,0; 0,c,-s; 0,s,c];
-        end
-
-        function rotation = roty(angle)
-            %ROTY 绕 Y 轴的主动旋转矩阵，输入单位为弧度。
-            validateattributes(angle, {'numeric'}, ...
-                {'real','finite','scalar'}, mfilename, 'angle');
-            c = cos(double(angle)); s = sin(double(angle));
-            rotation = [c,0,s; 0,1,0; -s,0,c];
-        end
-
-        function rotation = rotz(angle)
-            %ROTZ 绕 Z 轴的主动旋转矩阵，输入单位为弧度。
-            validateattributes(angle, {'numeric'}, ...
-                {'real','finite','scalar'}, mfilename, 'angle');
-            c = cos(double(angle)); s = sin(double(angle));
-            rotation = [c,-s,0; s,c,0; 0,0,1];
-        end
-
-        function rotation = rpy_to_rotation(rpy)
-            %RPY_TO_ROTATION 将弧度制 [roll; pitch; yaw] 转为 Rz*Ry*Rx。
-            validateattributes(rpy, {'numeric'}, ...
-                {'real','finite','vector','numel',3}, mfilename, 'rpy');
-            rotation = rpm.humanoid_robot.rotz(rpy(3)) * ...
-                rpm.humanoid_robot.roty(rpy(2)) * ...
-                rpm.humanoid_robot.rotx(rpy(1));
-        end
-
-        function rpy = rotation_to_rpy(rotation)
-            %ROTATION_TO_RPY 将 Rz*Ry*Rx 旋转矩阵转为弧度制列向量。
-            %   pitch 位于 [-pi/2, pi/2]，roll/yaw 位于 [-pi, pi]。
-            %   万向节锁时固定 roll=0；等价姿态的 RPY 不一定相同。
-            rpm.humanoid_robot.validate_rotation(rotation);
-            rotation = double(rotation);
-            cos_pitch = hypot(rotation(1,1), rotation(2,1));
-            pitch = atan2(-rotation(3,1), cos_pitch);
-            if cos_pitch > 1e-10
-                roll = atan2(rotation(3,2), rotation(3,3));
-                yaw = atan2(rotation(2,1), rotation(1,1));
-            else
-                roll = 0;
-                yaw = atan2(-rotation(1,2), rotation(2,2));
-            end
-            rpy = [roll; pitch; yaw];
-        end
-
-        function restore_frame_hold(ax, was_held)
-            if isgraphics(ax) && ~was_held
-                hold(ax, 'off');
-            end
         end
     end
 end

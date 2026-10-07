@@ -3,7 +3,9 @@ function urdf = load_urdf(file_path)
 %   URDF = rpm.utils.load_urdf(FILE_PATH) returns name, sourceFile, links,
 %   joints, and rootLinkIndex. Checks that connections form one rooted tree.
 %   No kinematics or physical validation is performed.
-%   Optional elements are [], repeated elements are column struct arrays.
+%   Missing origin elements/attributes default to xyz/rpy = zeros(3,1).
+%   Revolute/continuous/prismatic/planar joints default axis to [1;0;0].
+%   Other optional elements are [], repeated elements are column struct arrays.
 %   Requires base MATLAB with Java; no robotics toolbox is needed.
     arguments
         file_path (1,1) string
@@ -174,6 +176,16 @@ function value = parse_element(node)
             value.(key) = parsed;
         end
     end
+    % Complete the pose after parsing so defaults do not look like duplicates.
+    % Applies to joints and existing inertial/visual/collision elements.
+    if isfield(value, 'origin') && isempty(value.origin)
+        value.origin = template('origin');
+    end
+    if strcmp(tag, 'joint') && ...
+            any(strcmp(value.type, {'revolute','continuous','prismatic','planar'})) && ...
+            isempty(value.axis)
+        value.axis = [1;0;0];
+    end
 end
 
 function value = template(tag)
@@ -206,6 +218,10 @@ function value = template(tag)
         if isfield(value, key{1}), value.(key{1}) = ""; end
     end
     if strcmp(tag, 'mimic'), value.joint = ""; end
+    if strcmp(tag, 'origin')
+        value.xyz = zeros(3,1);
+        value.rpy = zeros(3,1);
+    end
 end
 
 function value = parse_number(raw, tag, key)

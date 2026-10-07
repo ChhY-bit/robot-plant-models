@@ -1,8 +1,12 @@
-function test_humanoid_frames()
-%TEST_HUMANOID_FRAMES Check accumulated zero-pose transforms and plotting.
+function test_robot_tree_frames(previewFile)
+%TEST_ROBOT_TREE_FRAMES Check zero-pose frames through object references.
+    arguments
+        previewFile (1,1) string = ""
+    end
     addpath(fileparts(fileparts(mfilename('fullpath'))));
     links = struct('name', {'root','a','b','c','branch'});
-    joints = repmat(struct('parent',"",'child',"",'origin',[]),4,1);
+    joints = repmat(struct('name',"",'type',"fixed",'parent',"",'child',"",'origin',[]),4,1);
+    for i = 1:numel(joints), joints(i).name = "joint_" + i; end
     joints(1).parent = "root"; joints(1).child = "a";
     joints(1).origin = struct('xyz',[1;0;0],'rpy',[0;0;pi/2]);
     joints(2).parent = "a"; joints(2).child = "b";
@@ -13,17 +17,17 @@ function test_humanoid_frames()
     % Match load_urdf's string-valued link names.
     for i = 1:numel(links), links(i).name = string(links(i).name); end
     urdf = struct('links',links,'joints',joints,'rootLinkIndex',1);
-    robot = rpm.humanoid_robot(urdf);
+    tree = rpm.chain.robotTree(urdf);
     fig = figure('Visible','off');
     cleanup = onCleanup(@() close(fig));
     ax = axes('Parent',fig);
     existing = plot3(ax,10,10,10,'o');
-    returned = robot.show_frames([],[],fig);
+    returned = tree.show_frames([],[],fig);
     assert(returned == fig && isgraphics(existing) && ~ishold(ax));
     assert(strcmp(ax.XGrid,'on') && isequal(ax.DataAspectRatio,[1,1,1]));
     expected = [0,1,0,1,1; 0,0,0,1,1; 0,0,0,0,0];
     % Queue order is root, a, branch, b, c. Only three quiver objects.
-    q = findall(ax,'Type','quiver','Tag','rpm.humanoid_robot.frame');
+    q = findall(ax,'Type','quiver','Tag','rpm.chain.robotTree.frame');
     assert(numel(q) == 3);
     for i = 1:3
         color = zeros(1,3); color(i) = 1;
@@ -37,51 +41,59 @@ function test_humanoid_frames()
     % Subtree T0 is explicitly the starting link's world pose.
     cla(ax); hold(ax,'on');
     T0 = [0,-1,0,1;1,0,0,0;0,0,1,0;0,0,0,1];
-    robot.show_frames(T0,2,fig);
+    tree.show_frames(T0,"a",fig);
     assert(ishold(ax));
     q = findall(ax,'Type','quiver');
     assert(numel(q(1).XData) == 3);
     assert(norm(q(1).YData(:)-[0;1;1]) < 1e-12);
     % Leaf subtree and single-link URDF still draw a frame.
-    cla(ax); robot.show_frames(eye(4),4,fig);
+    cla(ax); tree.show_frames(eye(4),tree.getLink("c"),fig);
     q = findall(ax,'Type','quiver');
-    assert(numel(q) == 3 && numel(q(1).XData) == 1);
-    single = rpm.humanoid_robot(struct('links',links(1),'joints',[],'rootLinkIndex',1));
+    assert(numel(q) == 3 && isscalar(q(1).XData));
+    single = rpm.chain.robotTree(struct('links',links(1),'joints',[],'rootLinkIndex',1));
     cla(ax); single.show_frames([],[],fig);
     assert(numel(findall(ax,'Type','quiver')) == 3);
     bad_transform = eye(4); bad_transform(1,1) = -1;
-    must_error(@() robot.show_frames(bad_transform,1,fig), ...
-        'rpm:humanoid_robot:InvalidRotationMatrix');
+    must_error(@() tree.show_frames(bad_transform,[],fig), ...
+        'rpm:robotTree:InvalidRotationMatrix');
     bad_transform = eye(4); bad_transform(4,1) = 1;
-    must_error(@() robot.show_frames(bad_transform,1,fig), ...
-        'rpm:humanoid_robot:InvalidTransform');
-    must_error(@() robot.show_frames([],[],ax), 'rpm:humanoid_robot:InvalidFigure');
+    must_error(@() tree.show_frames(bad_transform,[],fig), ...
+        'rpm:robotTree:InvalidTransform');
+    must_error(@() tree.show_frames([],[],ax), 'rpm:robotTree:InvalidFigure');
+    must_error(@() tree.show_frames([],single.baseLink,fig), 'rpm:robotTree:InvalidLink');
+    must_error(@() tree.show_frames([],2,fig), 'rpm:robotTree:InvalidLink');
     bad = urdf; bad.joints(2).child = "unknown";
-    broken = rpm.humanoid_robot(bad);
-    must_error(@() broken.show_frames([],[],fig), 'rpm:humanoid_robot:InvalidTopology');
+    must_error(@() rpm.chain.robotTree(bad), 'rpm:robotTree:InvalidTopology');
     bad = urdf;
     bad.joints(4).parent = "c"; bad.joints(4).child = "root";
-    broken = rpm.humanoid_robot(bad);
-    must_error(@() broken.show_frames([],[],fig), 'rpm:humanoid_robot:InvalidTopology');
+    must_error(@() rpm.chain.robotTree(bad), 'rpm:robotTree:InvalidTopology');
     bad = urdf; bad.joints = bad.joints(1:3); % Unreachable branch link.
-    broken = rpm.humanoid_robot(bad);
-    must_error(@() broken.show_frames([],[],fig), 'rpm:humanoid_robot:InvalidTopology');
+    must_error(@() rpm.chain.robotTree(bad), 'rpm:robotTree:InvalidTopology');
     % Traverse deeper than the normal recursion limit without recursive calls.
     n = 600;
     deep_links = repmat(struct('name',""),n,1);
-    deep_joints = repmat(struct('parent',"",'child',"",'origin',[]),n-1,1);
+    deep_joints = repmat(struct('name',"",'type',"fixed",'parent',"",'child',""),n-1,1);
     for i = 1:n
         deep_links(i).name = "link_" + i;
         if i < n
+            deep_joints(i).name = "joint_" + i;
             deep_joints(i).parent = "link_" + i;
             deep_joints(i).child = "link_" + (i+1);
         end
     end
-    deep = rpm.humanoid_robot(struct('links',deep_links,'joints',deep_joints,'rootLinkIndex',1));
+    deep = rpm.chain.robotTree(struct('links',deep_links,'joints',deep_joints,'rootLinkIndex',1));
     cla(ax); deep.show_frames([],[],fig);
     q = findall(ax,'Type','quiver');
     assert(numel(q) == 3 && numel(q(1).XData) == n);
-    fprintf('test_humanoid_frames passed.\n');
+    % Display uses temporary poses, without changing the node state.
+    assert(isempty(tree.baseLink.world_T) && isempty(tree.getLink("b").world_T));
+    if strlength(previewFile) > 0
+        cla(ax); tree.show_frames([],[],fig);
+        title(ax, 'Robot link frames at zero joint displacement');
+        xlabel(ax, 'X'); ylabel(ax, 'Y'); zlabel(ax, 'Z');
+        exportgraphics(ax, previewFile);
+    end
+    fprintf('test_robot_tree_frames passed.\n');
 end
 
 function must_error(action,identifier)
