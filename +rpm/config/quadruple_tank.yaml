@@ -1,0 +1,20 @@
+# 四水箱容器默认参数
+
+# 水箱截面积 [m^2]
+TankArea_1: 2.8e-3
+TankArea_2: 3.2e-3
+TankArea_3: 2.8e-3
+TankArea_4: 3.2e-3
+
+# 出水孔截面积 [m^2]
+HoleArea_1: 7.1e-6
+HoleArea_2: 5.7e-6
+HoleArea_3: 7.1e-6
+HoleArea_4: 5.7e-6
+
+# 重力加速度 [m/s^2]
+g: 9.81
+
+# 阀门分配比
+gamma_1: 0.5
+gamma_2: 0.5
