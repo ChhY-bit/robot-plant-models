@@ -30,7 +30,7 @@ The root `VERSION` file is the single maintained project version. With the proje
 value = rpm.version();
 ```
 
-This works without Git in source checkouts, extracted ZIPs, and installed toolboxes. Website builds and release packaging read the same file. Git commits and working-tree state identify development snapshots separately. See [Versioning and releases](RELEASING.md) for the release builder and tag checks.
+This works without Git in source checkouts, extracted ZIPs, and installed toolboxes. Website builds read the same file automatically. Source ZIPs and MATLAB toolboxes are assembled manually: include `VERSION` alongside `+rpm/`, `setup.m`, `LICENSE`, and `README.md` at the package root. In MATLAB's Package Toolbox interface, set the toolbox version to the value in `VERSION`; the packaging project does not update that field automatically. Use a matching `v<VERSION>` Git tag to identify the released source commit.
 
 Robot classes use the `rpm` namespace. Shared utilities for Ackermann, differential-drive, and humanoid robots live in `+rpm/+utils/` and use `rpm.utils`, for example `rpm.utils.load_wheel_params()` and `rpm.utils.load_urdf(file_path)`.
 

@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 
-// The root file is shared with MATLAB queries and release packaging.
+// The root VERSION is shared with MATLAB queries and included in manual releases.
 const version = readFileSync(new URL('../../VERSION', import.meta.url), 'utf8').trim()
 if (!/^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/.test(version)) {
   throw new Error('VERSION must contain a numeric major.minor.patch value.')
