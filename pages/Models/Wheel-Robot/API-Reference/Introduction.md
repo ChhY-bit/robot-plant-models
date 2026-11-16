@@ -13,7 +13,7 @@ Heading is measured counterclockwise from the world x-axis, and positive wheel r
 
 ## 2. Basic Usage
 
-With the project root (the parent of `+rpm/`) on the MATLAB search path, create a robot, send wheel-speed targets, advance the simulation, and read the result. Calling `sendCmd()` alone does not move the robot; commands are held until another command or reset. The same root path makes the parameter-loading and export helpers available; do not add `+rpm/` or its subdirectories separately. In a source checkout, run `setup` from `packaging/`; in a release ZIP, run it from the extracted top-level directory.
+With the project root (the parent of `+rpm/`) on the MATLAB search path, create a robot, send wheel-speed targets, advance the simulation, and read the result. Calling `sendCmd()` alone does not move the robot; commands are held until another command or reset. The same root path makes the parameter-loading and export helpers available; do not add `+rpm/` or its subdirectories separately. In a source checkout, run `setup` from the repository root; in a release ZIP, run it from the extracted top-level directory.
 
 ```matlab
 robot = rpm.wheel_robot();

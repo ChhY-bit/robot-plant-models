@@ -4,23 +4,27 @@ import { join, basename } from 'node:path'
 // Optional presentation metadata. Unknown documents are still discovered.
 export const presentation = {
   'Get-Started': { label: 'Get Started', order: ['Overview', 'Installation', 'Quickstart'] },
-  'Robots': { label: 'Robots', order: ['Ackermann-Robot', 'Wheel-Robot'] },
+  'Models': { label: 'Models', order: ['Ackermann-Robot', 'Wheel-Robot', 'Humanoid-Robot', 'Quadruple-Tank'] },
+  'Robots': { label: 'Robots', order: ['Ackermann-Robot', 'Wheel-Robot', 'Humanoid-Robot', 'Quadruple-Tank'] },
   'Installation': { label: 'Installation', order: ['MATLAB-Installation', 'Python-Installation'] },
   'Quickstart': { label: 'Quickstart', order: ['MATLAB-Quickstart', 'Python-Quickstart'] },
   'Ackermann-Robot': { label: 'Ackermann Robot', order: ['API-Reference', 'Modeling'] },
   'Wheel-Robot': { label: 'Wheel Robot', order: ['API-Reference', 'Modeling'] },
+  'Quadruple-Tank': { label: 'Quadruple Tank', order: ['API-Reference', 'Modeling'] },
   'API-Reference': { label: 'API Reference', order: ['Introduction', 'Properties', 'Methods', 'Utils'] },
   'MATLAB-Installation': { label: 'MATLAB' },
   'Python-Installation': { label: 'Python' },
   'MATLAB-Quickstart': { label: 'MATLAB' },
   'Python-Quickstart': { label: 'Python' },
   'ackermann-robot-model': { label: 'Model theory' },
-  'wheel-robot-model': { label: 'Model theory' }
+  'wheel-robot-model': { label: 'Model theory' },
+  'quadruple-tank-model': { label: 'Model theory' }
 }
 
 const chineseLabels = {
   'Get-Started': '入门指南', Robots: '机器人', Overview: '概述', Installation: '安装',
   Quickstart: '快速开始', 'Ackermann-Robot': '阿克曼机器人', 'Wheel-Robot': '差速轮式机器人',
+  'Quadruple-Tank': '四水箱容器', 'quadruple-tank-model': '模型理论',
   'API-Reference': 'API 参考', Introduction: '简介', Properties: '属性', Methods: '方法', Utils: '工具函数',
   Modeling: '模型理论', 'ackermann-robot-model': '模型理论', 'wheel-robot-model': '模型理论',
   'MATLAB-Installation': 'MATLAB', 'Python-Installation': 'Python',

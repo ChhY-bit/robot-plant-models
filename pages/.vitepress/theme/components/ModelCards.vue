@@ -16,7 +16,7 @@ const models = computed(() => zh.value ? [
 
 <template>
   <div class="model-cards">
-    <a v-for="model in models" :key="model.key" class="model-card" :href="withBase(`${zh ? '/zh' : ''}/Robots/${model.folder}/API-Reference/Introduction`)">
+    <a v-for="model in models" :key="model.key" class="model-card" :href="withBase(`${zh ? '/zh/Robots' : '/Models'}/${model.folder}/API-Reference/Introduction`)">
       <div class="model-card-top"><span class="model-category">{{ model.category }}</span><span class="model-arrow" aria-hidden="true">↗</span></div>
       <RobotDiagram :variant="model.key as 'ackermann' | 'wheel'" />
       <h3>{{ model.name }}</h3>

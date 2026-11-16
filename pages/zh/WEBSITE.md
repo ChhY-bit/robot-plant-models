@@ -48,6 +48,8 @@ PowerShell 若阻止执行 `npm.ps1`，可将命令中的 `npm` 改为 `npm.cmd`
 
 ## 文档行为 {#documentation-behavior}
 
+项目版本来自仓库根目录 `VERSION`，由 `.vitepress/site.mjs` 读取。中英文页脚均显示文档版本，每个生成页面还包含由 `npm run check:links` 核对的 `rpm-version` 元信息。更新项目版本时只修改 `VERSION` 并重新构建；该文件变更也会触发网站工作流。MATLAB 通过 `rpm.version()` 查询，发布打包使用受 Git 管理的 `scripts/build_release.m`，具体见根目录 `RELEASING.md`。
+
 左侧栏扫描 `Get-Started/`、`Robots/` 及对应中文目录中的 Markdown 文件。新增文件和子目录会自动纳入，空目录忽略。开发服务器会在文件增删时重启配置。展示映射表提供阅读顺序，未知项目按名称排序；frontmatter 设置 `sidebar: false` 的文档不会进入目录树。
 
 首个 Markdown 一级标题显示为正文上方的主标题，仅从渲染正文中移除，不删除源文件中的标题。右侧目录展示二级、三级标题。上一篇和下一篇按侧栏扫描顺序排列，并限制在当前语言、当前顶层栏目内。已有空文档保留路由，通过明确的“编写中”面板展示状态，无需修改其正文。

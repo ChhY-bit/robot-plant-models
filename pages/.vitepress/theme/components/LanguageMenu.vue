@@ -8,6 +8,8 @@ const menu = ref<HTMLDetailsElement>()
 const { page } = useData()
 const router = useRouter()
 const current = computed(() => page.value.relativePath.startsWith('zh/') ? 'zh' : 'root')
+const availableLanguages = computed(() => languages.filter(language =>
+  (page.value as any).rpm?.languages?.includes(language.code)))
 const label = computed(() => languages.find(language => language.code === current.value)?.label)
 function destination(code: string) {
   return withBase(languageLink(page.value.relativePath, code))
@@ -40,7 +42,7 @@ onUnmounted(() => { document.removeEventListener('click', dismiss); document.rem
       <span>{{ label }}</span><span class="language-chevron" aria-hidden="true">⌄</span>
     </summary>
     <div class="language-options">
-      <a v-for="language in languages" :key="language.code" class="language-option vp-raw" :href="destination(language.code)" :hreflang="language.lang" :aria-current="language.code === current ? 'true' : undefined" @click="selectLanguage($event, language.code)">
+      <a v-for="language in availableLanguages" :key="language.code" class="language-option vp-raw" :href="destination(language.code)" :hreflang="language.lang" :aria-current="language.code === current ? 'true' : undefined" @click="selectLanguage($event, language.code)">
         {{ language.label }} <span v-if="language.code === current" aria-hidden="true">✓</span>
       </a>
     </div>

@@ -121,7 +121,7 @@ try {
   assert.ok(await page.locator('html').evaluate(element => element.classList.contains('dark')))
   await page.locator('.VPNavBarAppearance button').click()
 
-  await page.goto(new URL('Robots/Ackermann-Robot/API-Reference/Methods', url).href, { waitUntil: 'networkidle' })
+  await page.goto(new URL('Models/Ackermann-Robot/API-Reference/Methods', url).href, { waitUntil: 'networkidle' })
   assert.equal(await page.locator('.document-heading h1').textContent(), 'Ackermann-Robot Methods')
   assert.equal(await page.locator('.vp-doc h1').count(), 0)
   assert.ok(await page.locator('.VPDocAsideOutline .outline-link').count() > 20)
@@ -179,7 +179,7 @@ try {
   await screenshot('properties-zh-desktop.png')
   await language.locator('summary').click()
   await language.locator('a[hreflang="en"]').click()
-  await page.waitForURL('**/Robots/Ackermann-Robot/API-Reference/Properties#3-params')
+  await page.waitForURL('**/Models/Ackermann-Robot/API-Reference/Properties#3-params')
   await page.waitForFunction(() => document.documentElement.lang === 'en')
   assert.ok(!page.url().includes('/zh/'))
   await language.locator('summary').click()
@@ -205,7 +205,7 @@ try {
     console.log(`Home layout: ${width}px OK`)
   }
   await screenshot('home-mobile.png', true)
-  await page.goto(new URL('Robots/Wheel-Robot/API-Reference/Methods', url).href, { waitUntil: 'networkidle' })
+  await page.goto(new URL('Models/Wheel-Robot/API-Reference/Methods', url).href, { waitUntil: 'networkidle' })
   assert.equal(await page.locator('.vp-doc').evaluate(el => getComputedStyle(el).fontSize), '18px')
   await codeHeaderSeparated(page.locator('.vp-doc div.language-matlab').first())
   await noOverflow()

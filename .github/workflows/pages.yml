@@ -4,10 +4,12 @@ on:
   push:
     paths:
       - 'pages/**'
+      - 'VERSION'
       - '.github/workflows/pages.yml'
   pull_request:
     paths:
       - 'pages/**'
+      - 'VERSION'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 

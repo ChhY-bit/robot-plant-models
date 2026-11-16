@@ -4,8 +4,9 @@ export const languages = [
   { code: 'zh', label: '简体中文', lang: 'zh-CN' }
 ]
 
-// Canonical document paths and anchors are identical in each language mirror.
+// English models use Models/ while the Chinese tree still uses Robots/.
 export function languageLink(relativePath, code, hash = '') {
-  const canonical = relativePath.replace(/^zh\//, '').replace(/\.md$/, '').replace(/(^|\/)index$/, '$1')
+  const canonical = relativePath.replace(/^zh\//, '').replace(/^(?:Models|Robots)\//, code === 'root' ? 'Models/' : 'Robots/')
+    .replace(/\.md$/, '').replace(/(^|\/)index$/, '$1')
   return `/${code === 'root' ? '' : `${code}/`}${canonical}${hash}`
 }

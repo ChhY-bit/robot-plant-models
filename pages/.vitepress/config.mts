@@ -1,12 +1,14 @@
 import { defineConfig } from 'vitepress'
 import { fileURLToPath } from 'node:url'
+import { existsSync } from 'node:fs'
+import { languageLink } from './languages.mjs'
 import { project, languages } from './site.mjs'
 import { scanSection, pageInfo, flattenNavigation, headingSlug } from './navigation.mjs'
 
 const root = fileURLToPath(new URL('../', import.meta.url))
 const sidebar = {
   '/Get-Started/': scanSection(root, 'Get-Started'),
-  '/Robots/': scanSection(root, 'Robots'),
+  '/Models/': scanSection(root, 'Models'),
   '/zh/Get-Started/': scanSection(root, 'Get-Started', 'zh'),
   '/zh/Robots/': scanSection(root, 'Robots', 'zh')
 }
@@ -18,7 +20,10 @@ export default defineConfig({
   base: project.base,
   cleanUrls: true,
   lastUpdated: false,
-  head: [['link', { rel: 'icon', type: 'image/svg+xml', href: `${project.base}mark.svg` }]],
+  head: [
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: `${project.base}mark.svg` }],
+    ['meta', { name: 'rpm-version', content: project.version }]
+  ],
   locales: Object.fromEntries(languages.map(language => [language.code, {
     label: language.label, lang: language.lang,
     ...(language.code === 'zh' ? {
@@ -34,7 +39,10 @@ export default defineConfig({
         ],
         outline: { level: [2, 3], label: '本页目录' },
         docFooter: { prev: '上一篇', next: '下一篇' },
-        footer: { message: 'Robot Plant Models · 开放模型，自由定制。' },
+        footer: {
+          message: 'Robot Plant Models · 开放模型，自由定制。',
+          copyright: `文档版本 v${project.version}`
+        },
         sidebarMenuLabel: '文档目录', returnToTopLabel: '返回顶部',
         darkModeSwitchLabel: '切换主题', lightModeSwitchTitle: '切换为浅色模式',
         darkModeSwitchTitle: '切换为深色模式', skipToContentLabel: '跳转到正文'
@@ -42,12 +50,15 @@ export default defineConfig({
     } : {})
   }])),
   themeConfig: {
+    // The custom language menu maps the different English/Chinese model paths.
+    // Keep the hidden default menu from generating nonexistent mirrored URLs.
+    i18nRouting: false,
     logo: '/mark.svg',
     siteTitle: 'Robot Plant Models',
     nav: [
       { text: 'Home', link: '/' },
       { text: 'Get Started', link: '/Get-Started/Overview', activeMatch: '/Get-Started/' },
-      { text: 'Robots', link: '/Robots/', activeMatch: '/Robots/' },
+      { text: 'Models', link: '/Models/', activeMatch: '/Models/' },
       { text: 'FAQ', link: '/FAQ/' },
       { text: 'Releases', link: project.releases },
       { text: 'About', link: '/About/' }
@@ -85,7 +96,10 @@ export default defineConfig({
     },
     socialLinks: [{ icon: 'github', link: project.repository, ariaLabel: 'Project on GitHub' }],
     docFooter: { prev: 'Previous page', next: 'Next page' },
-    footer: { message: 'Robot Plant Models · Open models. Make them yours.' }
+    footer: {
+      message: 'Robot Plant Models · Open models. Make them yours.',
+      copyright: `Documentation v${project.version}`
+    }
   },
   markdown: {
     math: true,
@@ -102,11 +116,18 @@ export default defineConfig({
   transformPageData(page) {
     const info = pageInfo(root, page.relativePath)
     if (!page.frontmatter.title) page.title = info.title
-    page.rpm = info
+    page.rpm = {
+      ...info,
+      languages: languages.filter(language => {
+        const path = languageLink(page.relativePath, language.code).slice(1)
+        return existsSync(`${root}${path.endsWith('/') || !path ? `${path}index` : path}.md`)
+      }).map(language => language.code)
+    }
     const prefix = page.relativePath.startsWith('zh/') ? '/zh/' : '/'
     const canonical = page.relativePath.replace(/^zh\//, '')
     const section = canonical.startsWith('Get-Started/') ? `${prefix}Get-Started/`
-      : canonical.startsWith('Robots/') ? `${prefix}Robots/` : ''
+      : canonical.startsWith('Models/') ? '/Models/'
+      : canonical.startsWith('Robots/') && prefix === '/zh/' ? '/zh/Robots/' : ''
     const documents = section ? flattenNavigation(sidebar[section]) : []
     const current = `/${page.relativePath.replace(/\.md$/, '')}`
     const position = documents.findIndex(item => item.link === current)

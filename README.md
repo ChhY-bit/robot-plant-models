@@ -20,7 +20,17 @@ MATLAB R2024a has been verified. Earlier releases have not been tested.
 2. In MATLAB, open the extracted folder containing `setup.m` and `+rpm/`, then run `setup`.
 3. Choose whether to save the MATLAB search path permanently when prompted. Keep the extracted folder in place after installation.
 
-For a source checkout, run `setup` from `packaging/` instead. The script adds the project root to the search path; do not add `+rpm/` itself.
+For a source checkout, run `setup` from the repository root. The script adds the project root to the search path; do not add `+rpm/` itself.
+
+## Version
+
+The root `VERSION` file is the single maintained project version. With the project on the MATLAB path, query it using:
+
+```matlab
+value = rpm.version();
+```
+
+This works without Git in source checkouts, extracted ZIPs, and installed toolboxes. Website builds and release packaging read the same file. Git commits and working-tree state identify development snapshots separately. See [Versioning and releases](RELEASING.md) for the release builder and tag checks.
 
 Robot classes use the `rpm` namespace. Shared utilities for Ackermann, differential-drive, and humanoid robots live in `+rpm/+utils/` and use `rpm.utils`, for example `rpm.utils.load_wheel_params()` and `rpm.utils.load_urdf(file_path)`.
 
@@ -39,7 +49,7 @@ pose = robot.getPose();
 fprintf('Pose: x=%f m, y=%f m, theta=%f rad\n', pose(1), pose(2), pose(3));
 ```
 
-For a differential-drive model, use `rpm.wheel_robot()`; its `sendCmd(left, right)` arguments are the left and right wheel speeds in rad/s. See the [API documentation](https://chhy-bit.github.io/robot-plant-models/Robots/) for details.
+For a differential-drive model, use `rpm.wheel_robot()`; its `sendCmd(left, right)` arguments are the left and right wheel speeds in rad/s. See the [API documentation](https://chhy-bit.github.io/robot-plant-models/Models/) for details.
 
 ## URDF structure tree
 

@@ -13,6 +13,9 @@ const documents = new Map(walk(dist).map(file => [relative(dist, file).replaceAl
 const errors = []
 let checked = 0
 for (const [file, html] of documents) {
+  if (!html.includes(`<meta name="rpm-version" content="${project.version}">`)) {
+    errors.push(`${file}: missing or stale project version; rebuild from VERSION`)
+  }
   const url = new URL(`${project.base}${file}`, 'https://local.test')
   const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(match => match[1])
   if (new Set(ids).size !== ids.length) errors.push(`${file}: duplicate HTML IDs`)

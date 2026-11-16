@@ -45,7 +45,9 @@ The GitHub links in `site.mjs` use `ChhY-bit/robot-plant-models`. The local defa
 
 ## Documentation behavior
 
-The left sidebar scans Markdown documents under `Get-Started/` and `Robots/`. New documents and folders are included automatically, and empty folders are omitted. The development server restarts its configuration when files are added or removed. A small presentation map supplies sensible reading order; unknown entries are sorted by name. An entry with frontmatter `sidebar: false` is excluded from the tree.
+The project version comes from the repository-root `VERSION` file, read by `.vitepress/site.mjs`. Both language footers display the documentation version, and every generated page includes `rpm-version` metadata checked by `npm run check:links`. Change only `VERSION` when updating the project version, then rebuild. The workflow also runs when that file changes. MATLAB queries it with `rpm.version()`; release packaging uses the tracked `scripts/build_release.m` entry point described in the root `RELEASING.md`.
+
+The left sidebar scans Markdown documents under `Get-Started/` and `Models/` (Chinese still uses `zh/Robots/`). New documents and folders are included automatically, and empty folders are omitted. The development server restarts its configuration when files are added or removed. A small presentation map supplies sensible reading order; unknown entries are sorted by name. An entry with frontmatter `sidebar: false` is excluded from the tree.
 
 The first Markdown H1 becomes the page title above the prose; it is removed only from rendered prose, not from the source. The right outline uses H2 and H3. Previous/next navigation follows the scanned sidebar order, scoped to its top-level section. Existing empty documents retain their routes and show an explicit work-in-progress panel without modifying their source.
 
@@ -53,17 +55,17 @@ Relative Markdown links are processed by VitePress. Moving a document may still 
 
 ## Website languages
 
-English keeps the existing paths. Translations mirror them, for example:
+English model documentation uses `Models/`; the existing Chinese tree remains under `zh/Robots/`. For example:
 
 ```text
-Robots/Ackermann-Robot/API-Reference/Methods.md
+Models/Ackermann-Robot/API-Reference/Methods.md
 zh/Robots/Ackermann-Robot/API-Reference/Methods.md
-ja/Robots/Ackermann-Robot/API-Reference/Methods.md
+ja/Models/Ackermann-Robot/API-Reference/Methods.md
 ```
 
-English and Simplified Chinese are enabled. No `-zh` suffix is needed inside `zh/`. The Chinese mirror includes all document routes, including this maintenance guide; empty English pages remain empty mirrors with a localized work-in-progress panel.
+English and Simplified Chinese are enabled. No `-zh` suffix is needed inside `zh/`. Existing Chinese translations are retained, including this maintenance guide; new English model pages may not have translations yet; empty English pages remain empty mirrors with a localized work-in-progress panel.
 
-The custom language menu switches to the corresponding page and preserves the current heading anchor. Chinese headings use explicit `{#original-anchor}` IDs so existing cross-references and language switches remain valid. Keep API identifiers, YAML keys, units, formulas, and executable examples unchanged when translating. Update both language versions when the API or source documentation changes; translations are maintained Markdown, not generated during the site build.
+The custom language menu maps English `Models/` paths to Chinese `Robots/` paths and preserves the current heading anchor. Only languages with an existing corresponding Markdown page are offered. Chinese headings use explicit `{#original-anchor}` IDs so existing cross-references and language switches remain valid. Keep API identifiers, YAML keys, units, formulas, and executable examples unchanged when translating. Update both language versions when the API or source documentation changes; translations are maintained Markdown, not generated during the site build.
 
 To add another language, create its full mirror, register it in `.vitepress/languages.mjs`, add locale-specific navigation and UI strings in `.vitepress/config.mts` and the custom theme, and add its sidebars and canonical-path handling. Missing translations must provide an explicit English-original link, not silently masquerade as translated content. Run the navigation tests, production build, link checker, and browser smoke tests after changes.
 

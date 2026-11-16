@@ -18,7 +18,7 @@ const breadcrumbs = computed(() => {
   const labels = zh.value ? info.value?.labels.slice(1) : info.value?.labels
   return parts.slice(0, -1).map((part: string, index: number) => ({
     label: labels?.[index] || part.replace(/[-_]/g, ' '),
-    link: index === 0 && part === 'Robots' ? `${prefix.value}/Robots/`
+    link: index === 0 && (part === 'Models' || part === 'Robots') ? `${prefix.value}/${part}/`
       : index === 0 && part === 'Get-Started' ? `${prefix.value}/Get-Started/Overview` : ''
   }))
 })
@@ -65,9 +65,9 @@ onUnmounted(() => {
           <span class="placeholder-mark" aria-hidden="true">···</span>
           <h2>{{ zh ? '文档编写中' : 'Documentation in progress' }}</h2>
           <p>{{ zh ? `本页为“${page.title}”预留，内容尚未编写。` : `This page is reserved for ${page.title.toLowerCase()}. Its content has not been written yet.` }}</p>
-          <p>{{ zh ? '在本节完善之前，您可以先查阅已有的机器人 API 参考。' : 'Explore the available robot API references while this section is being prepared.' }}</p>
+          <p>{{ zh ? '在本节完善之前，您可以先查阅已有的机器人 API 参考。' : 'Explore the available model API references while this section is being prepared.' }}</p>
           <p v-if="page.relativePath.includes('Python')">{{ zh ? '原生 Python 支持属于未来规划，目前尚未提供相应安装包。' : 'Native Python support is a future consideration, not an available package.' }}</p>
-          <a :href="withBase(`${prefix}/Robots/`)">{{ zh ? '浏览机器人模型' : 'Explore the robot models' }} <span aria-hidden="true">→</span></a>
+          <a :href="withBase(zh ? '/zh/Robots/' : '/Models/')">{{ zh ? '浏览机器人模型' : 'Explore the models' }} <span aria-hidden="true">→</span></a>
         </div>
       </header>
     </template>

@@ -7,6 +7,8 @@ classdef quadruple_tank < handle
         gamma_1, gamma_2    % 阀门分配比
 
         u1, u2              % 进水速率
+
+        disturbance = [0;0;0;0]     % 扰动
     end
 
     properties(SetAccess=private)
@@ -75,7 +77,6 @@ classdef quadruple_tank < handle
             obj.x2 = States(2);
             obj.x3 = States(3);
             obj.x4 = States(4);
-
         end
 
         function setValve(obj,gamma_1,gamma_2)
@@ -88,6 +89,14 @@ classdef quadruple_tank < handle
                 mfilename, 'gamma_2');
             obj.gamma_1 = double(gamma_1);
             obj.gamma_2 = double(gamma_2);
+        end
+
+        function addDisturbance(obj,d)
+            %ADDDISTURBANCE 设置四个水箱的水位变化率扰动 [m/s]，允许正负值。
+            validateattributes(d, {'numeric'}, ...
+                {'real', 'finite', 'vector', 'numel', 4}, ...
+                mfilename, 'd');
+            obj.disturbance = double(d(:));
         end
 
     end
@@ -127,6 +136,7 @@ classdef quadruple_tank < handle
             -obj.a3/obj.A3*sqrt(2*obj.g*z(3)) + (1-obj.gamma_2)/obj.A3*u(2); ...
             -obj.a4/obj.A4*sqrt(2*obj.g*z(4)) + (1-obj.gamma_1)/obj.A4*u(1)...
             ];
+            dz = dz + obj.disturbance;      % 加入扰动
         end
     end
 end
