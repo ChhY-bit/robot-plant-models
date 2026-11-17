@@ -6,10 +6,10 @@ These standalone functions in `rpm.utils` read parameter files and export templa
 
 ### `rpm.utils.load_quadruple_tank_params(file_path)` {#rpm-utils-load-quadruple-tank-params}
 
-Read, validate, and normalize the 11 physical fields listed in [Properties](Properties.md#2-physical-parameters). Returned names match the YAML keys; conversion to `A1` through `A4` and `a1` through `a4` happens in the constructor.
+Read, validate, and normalize the 19 physical fields listed in [Properties](Properties.md#2-physical-parameters). Returned names match the YAML keys; the constructor validates and stores the structure in private `Params`.
 
 - **Argument:** `file_path` (optional): `1x1 string`, or a character vector convertible to one. Default `""` selects bundled `+rpm/config/quadruple_tank.yaml` independently of the current working directory. Explicit relative paths use the current working directory. `[]` is not an empty-path shortcut.
-- **Return:** `params`, a scalar structure containing exactly the 11 recognized fields as `double` scalars. Extra YAML fields are not returned.
+- **Return:** `params`, a scalar structure containing exactly the 19 recognized fields as `double` scalars. Extra YAML fields are not returned.
 - **see also:** [constructor](Methods.md#rpm-quadruple-tank), [template export](#rpm-utils-export-quadruple-tank-params).
 - **Usage:**
 
@@ -24,7 +24,7 @@ Read, validate, and normalize the 11 physical fields listed in [Properties](Prop
     tank = rpm.quadruple_tank(params, [0.1; 0.1; 0.1; 0.1]);
     ```
 
-All required fields must be numeric, real, finite scalars. Tank areas, hole areas, and `g` must be positive; `gamma_1` and `gamma_2` must lie in `[0, 1]`. Missing fields are errors rather than requests for individual defaults. Initial water levels, pump inputs, and disturbances are not part of the parameter structure.
+All required fields must be numeric, real, finite scalars. Tank areas, hole areas, `g`, tank heights, maximum flows, and design flow speeds must be positive; `gamma_1` and `gamma_2` must lie in `[0, 1]`. Missing fields are errors rather than requests for individual defaults. Initial water levels, pump inputs, and disturbances are not part of the parameter structure.
 
 The loader uses `readyaml` if it is available. Otherwise, the built-in fallback reads top-level `key: number` or `key: [number, ...]` entries with JSON-compatible numeric values. Required tank parameters must still be scalars. Blank lines and whole-line `#` comments are accepted; nested YAML, block sequences, and inline comments are outside the fallback syntax.
 

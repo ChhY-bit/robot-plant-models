@@ -10,8 +10,8 @@ The current heights of water in tanks 1 through 4. Tanks 1 and 2 are the lower t
 
 - **type:** Four `double` scalars, in m.
 - **default:** `0` for each level.
-- **constraints:** Initial levels must be finite, real, nonnegative numeric values. The constructor accepts a four-element row or column vector and normalizes it to a double column vector before assignment.
-- **access:** Read with `tank.x1` through `tank.x4`; direct external assignment is prohibited. `step()` updates the levels and clips the final result at zero. No upper water-level limit is configured.
+- **constraints:** The constructor and `reset()` accept four-element finite real numeric row or column vectors. Each level must lie in `[0, corresponding tank height]`, including endpoints; out-of-range values are rejected. Values are normalized to double columns.
+- **access:** Read with `tank.x1` through `tank.x4`; external assignment is prohibited. `step()` clips final levels to `[0, corresponding tank height]`; `reset()` assigns new initial levels.
 - **see also:** [constructor](Methods.md#rpm-quadruple-tank), [integration](Methods.md#stepdt-t).
 - **Usage:**
 
@@ -23,29 +23,37 @@ The current heights of water in tanks 1 through 4. Tanks 1 and 2 are the lower t
 
 ## 2.* Physical Parameters {#2-physical-parameters}
 
-The constructor accepts a scalar `Params` structure with the following 11 case-sensitive fields. It validates them, converts required values to `double`, and maps them to individual private properties. There is no stored `Params` property and no public parameter getter. Extra structure fields are not stored in the object.
+The constructor requires the following 19 case-sensitive fields. After validation, the structure is stored in private `Params`, preserving YAML field names. There is no public parameter getter. Extra fields in a directly supplied structure are retained but do not participate in calculations.
 
-| YAML / `Params` field | Private property | Bundled default | Unit | Constraint |
+| Field | Meaning | Default | Unit | Constraint |
 | --- | --- | --- | --- | --- |
-| `TankArea_1` | `A1` | `2.8e-3` | m² | Positive scalar |
-| `TankArea_2` | `A2` | `3.2e-3` | m² | Positive scalar |
-| `TankArea_3` | `A3` | `2.8e-3` | m² | Positive scalar |
-| `TankArea_4` | `A4` | `3.2e-3` | m² | Positive scalar |
-| `HoleArea_1` | `a1` | `7.1e-6` | m² | Positive scalar |
-| `HoleArea_2` | `a2` | `5.7e-6` | m² | Positive scalar |
-| `HoleArea_3` | `a3` | `7.1e-6` | m² | Positive scalar |
-| `HoleArea_4` | `a4` | `5.7e-6` | m² | Positive scalar |
-| `g` | `g` | `9.81` | m/s² | Positive scalar |
-| `gamma_1` | `gamma_1` | `0.5` | Dimensionless | Scalar in `[0, 1]` |
-| `gamma_2` | `gamma_2` | `0.5` | Dimensionless | Scalar in `[0, 1]` |
+| `TankArea_1` | Tank 1 area | `2.8` | m² | Positive scalar |
+| `TankArea_2` | Tank 2 area | `3.2` | m² | Positive scalar |
+| `TankArea_3` | Tank 3 area | `2.8` | m² | Positive scalar |
+| `TankArea_4` | Tank 4 area | `3.2` | m² | Positive scalar |
+| `HoleArea_1` | Tank 1 outlet area | `0.71` | m² | Positive scalar |
+| `HoleArea_2` | Tank 2 outlet area | `0.57` | m² | Positive scalar |
+| `HoleArea_3` | Tank 3 outlet area | `0.71` | m² | Positive scalar |
+| `HoleArea_4` | Tank 4 outlet area | `0.57` | m² | Positive scalar |
+| `g` | Gravity | `9.81` | m/s² | Positive scalar |
+| `gamma_1` | Pump 1 split ratio | `0.5` | — | `[0, 1]` |
+| `gamma_2` | Pump 2 split ratio | `0.5` | — | `[0, 1]` |
+| `TankHeight_1` | Tank 1 height / level limit | `1.2` | m | Positive scalar |
+| `TankHeight_2` | Tank 2 height / level limit | `1.5` | m | Positive scalar |
+| `TankHeight_3` | Tank 3 height / level limit | `1.2` | m | Positive scalar |
+| `TankHeight_4` | Tank 4 height / level limit | `1.5` | m | Positive scalar |
+| `PumpMaxFlow_1` | Pump 1 maximum total flow | `0.05` | m³/s | Positive scalar |
+| `PumpMaxFlow_2` | Pump 2 maximum total flow | `0.05` | m³/s | Positive scalar |
+| `PumpFlowSpeed_1` | Pump 1 design flow speed | `1.0` | m/s | Positive scalar |
+| `PumpFlowSpeed_2` | Pump 2 design flow speed | `1.0` | m/s | Positive scalar |
 
-All required values must be numeric, real, and finite. `A1` through `A4` are tank cross-sectional areas; `a1` through `a4` are outlet-hole areas. The defaults come from `+rpm/config/quadruple_tank.yaml`. Missing fields are errors; individual fields are not filled from defaults when a custom structure is supplied.
+All required values are finite real numeric scalars normalized to `double`. Defaults come from `+rpm/config/quadruple_tank.yaml`; missing fields are errors, with no individual defaults. Heights bound initial and integrated levels; maximum flows bound inputs. Design flow speeds are average outlet-main-pipe speeds at maximum flow, allowing abstract areas to be derived as `S = Qmax / v`; they do not enter the dynamics.
 
 Pump 1 sends fraction `gamma_1` to tank 1 and fraction `1-gamma_1` to tank 4. Pump 2 sends fraction `gamma_2` to tank 2 and fraction `1-gamma_2` to tank 3. Ratios can be changed after construction through [setValve](Methods.md#setvalvegamma_1-gamma_2). Other physical parameters are fixed for the object's lifetime. Editing the source structure or YAML file does not update an existing object.
 
 ```matlab
 params = rpm.utils.load_quadruple_tank_params();
-params.TankArea_1 = 3e-3;
+params.TankArea_1 = 3.0;
 tank = rpm.quadruple_tank(params);
 tank.setValve(0.3, 0.7);
 ```
@@ -57,7 +65,7 @@ tank.setValve(0.3, 0.7);
 - **type:** Two `double` scalars, in `m^3/s`.
 - **default:** Both `0`.
 - **constraints:** Finite, real, nonnegative numeric scalar inputs.
-- **behavior:** Set with [send](Methods.md#sendu1-u2); both values are held until the next successful call. Inputs are applied directly as flow rates, without pump actuator dynamics or an upper flow limit. Both inputs are validated before either property is changed.
+- **behavior:** Set with [send](Methods.md#sendu1-u2); both values are held until the next successful call. Inputs are applied directly as flow rates, capped at the corresponding `PumpMaxFlow` without pump actuator dynamics; `reset()` clears both inputs. Both inputs are validated before either property is changed.
 
 ## 4.* Disturbance {#4-disturbance}
 
@@ -66,7 +74,7 @@ tank.setValve(0.3, 0.7);
 - **type:** `4x1 double`, ordered `[d1; d2; d3; d4]`, in `m/s`.
 - **default:** `[0; 0; 0; 0]`.
 - **constraints:** Four finite, real numeric elements; positive, negative, and zero values are accepted. Row input is normalized to a column vector.
-- **behavior:** [addDisturbance](Methods.md#adddisturbanced) replaces the held vector. It is added directly to the four water-level derivatives in every RK4 stage and remains active until replaced. It is not divided by tank area. Positive values raise a tank's rate of change; negative values lower it. Water-level clipping still applies at zero.
+- **behavior:** [addDisturbance](Methods.md#adddisturbanced) replaces the held vector. It is added directly to the four water-level derivatives in every RK4 stage and remains active until replaced. It is not divided by tank area. Positive values raise a tank's rate of change; negative values lower it. Water-level clipping applies at zero and tank height; `reset()` clears the disturbance.
 
 ```matlab
 tank.addDisturbance([1e-4; -1e-4; 0; 0]);

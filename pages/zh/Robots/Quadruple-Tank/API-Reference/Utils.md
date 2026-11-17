@@ -6,10 +6,10 @@
 
 ### `rpm.utils.load_quadruple_tank_params(file_path)` {#rpm-utils-load-quadruple-tank-params}
 
-读取、校验并规范化[属性文档](Properties.md#2-physical-parameters)中的 11 个物理字段。返回字段名与 YAML 键一致；向 `A1` 至 `A4`、`a1` 至 `a4` 的转换在构造函数中完成。
+读取、校验并规范化[属性文档](Properties.md#2-physical-parameters)中的 19 个物理字段。返回字段名与 YAML 键一致，构造函数校验后直接保存为私有 `Params`。
 
 - **参数：** `file_path`（可选）：`1x1 string`，或可转换为字符串标量的字符向量。默认 `""` 选择随附 `+rpm/config/quadruple_tank.yaml`，不受当前工作目录影响。显式相对路径基于当前工作目录。`[]` 不能代替空路径字符串。
-- **返回值：** `params`，标量结构体，仅包含 11 个已识别字段，均为 `double` 标量。额外 YAML 字段不会返回。
+- **返回值：** `params`，标量结构体，仅包含 19 个已识别字段，均为 `double` 标量。额外 YAML 字段不会返回。
 - **另见：** [构造函数](Methods.md#rpm-quadruple-tank)、[模板导出](#rpm-utils-export-quadruple-tank-params)。
 - **用法：**
 
@@ -24,7 +24,7 @@
     tank = rpm.quadruple_tank(params, [0.1; 0.1; 0.1; 0.1]);
     ```
 
-所有必需字段均须为有限实数数值标量。水箱面积、出水孔面积及 `g` 必须大于零；`gamma_1` 和 `gamma_2` 必须在 `[0, 1]` 内。缺少字段会报错，不会逐项补默认值。初始液位、水泵输入和扰动不属于参数结构体。
+所有必需字段均须为有限实数数值标量。水箱面积、出水孔面积、`g`、箱高、最大流量及设计流速必须大于零；`gamma_1` 和 `gamma_2` 必须在 `[0, 1]` 内。缺少字段会报错，不会逐项补默认值。初始液位、水泵输入和扰动不属于参数结构体。
 
 若存在 `readyaml`，加载器会使用它；否则，内置回退读取器支持顶层 `key: number` 或 `key: [number, ...]`，数值须兼容 JSON。水箱的必需参数仍须为标量。接受空行和整行 `#` 注释；不支持嵌套 YAML、块序列或行内注释。
 

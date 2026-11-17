@@ -4,7 +4,7 @@ This page describes the continuous equations and numerical implementation of `rp
 
 ## 1. Flow Connections {#1-flow-connections}
 
-The four tanks have constant cross-sectional areas. Each outlet follows the gravity-driven law below; the model assumes nonnegative water levels and does not represent upper capacity limits or overflow.
+The four tanks have constant cross-sectional areas. Each outlet follows the gravity-driven law below; final levels are clipped between zero and tank height without explicitly calculating overflow rates.
 
 | Source | Destination | Volumetric flow rate |
 | --- | --- | --- |
@@ -53,3 +53,5 @@ $$
 This clipping keeps stored levels nonnegative for valid physical inputs, but it can alter the discrete volume balance and integration accuracy near an empty tank. It is not an adaptive or event-based draining solver. Select a sufficiently small positive step size and check sensitivity to smaller steps for the intended operating conditions. A negative disturbance at zero level cannot make the stored level negative because of the final clipping.
 
 The time argument is passed to the RK4 stages but is not currently used by the state equations. Time-varying commands or disturbances are supplied by updating the held values between steps. The class does not provide a linearization or transfer-function API.
+
+Construction and `reset()` reject initial levels outside `[0, corresponding tank height]`. `send()` rejects negative flows and caps flows at `PumpMaxFlow_1/2`. `step()` requires finite real scalars `dt > 0` and `t`. Upper clipping can be interpreted as removing excess water without tracking its destination. The volume identity above describes the unclipped continuous equations and excludes water removed by discrete clipping.

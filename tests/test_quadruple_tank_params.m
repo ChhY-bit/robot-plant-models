@@ -5,9 +5,14 @@ function test_quadruple_tank_params()
     params = rpm.utils.load_quadruple_tank_params();
     expected_fields = {'TankArea_1'; 'TankArea_2'; 'TankArea_3'; 'TankArea_4'; ...
         'HoleArea_1'; 'HoleArea_2'; 'HoleArea_3'; 'HoleArea_4'; ...
-        'g'; 'gamma_1'; 'gamma_2'};
-    assert(isequal(fieldnames(params), expected_fields));
-    assert(params.TankArea_1 == 2.8e-3 && params.HoleArea_4 == 5.7e-6);
+        'g'; 'gamma_1'; 'gamma_2'; ...
+        'TankHeight_1'; 'TankHeight_2'; 'TankHeight_3'; 'TankHeight_4'; ...
+        'PumpMaxFlow_1'; 'PumpMaxFlow_2'; 'PumpFlowSpeed_1'; 'PumpFlowSpeed_2'};
+    assert(isequal(sort(fieldnames(params)), sort(expected_fields)));
+    assert(params.TankArea_1 == 2.8 && params.HoleArea_4 == 0.57);
+    assert(params.TankHeight_1 == 1.2 && params.TankHeight_2 == 1.5);
+    assert(params.PumpMaxFlow_1 == 0.05 && params.PumpMaxFlow_2 == 0.05);
+    assert(params.PumpFlowSpeed_1 == 1 && params.PumpFlowSpeed_2 == 1);
     assert(params.g == 9.81 && params.gamma_1 == 0.5);
     for k = 1:numel(expected_fields)
         assert(isa(params.(expected_fields{k}), 'double'));
@@ -45,12 +50,21 @@ function test_quadruple_tank_params()
     assert(boundary.gamma_1 == 0 && boundary.gamma_2 == 1);
 
     invalid_values = ["0", "-1", "[1, 2]", "1e999"];
-    for value = invalid_values
-        writelines(replace(template, "TankArea_1: 2.8e-3", ...
-            "TankArea_1: " + value), input_path);
+    positive_fields = setdiff(string(expected_fields), ["gamma_1"; "gamma_2"]);
+    for field = positive_fields(:).'
+        for value = invalid_values
+            lines = splitlines(template);
+            lines(startsWith(lines, field + ":")) = field + ": " + value;
+            writelines(lines, input_path);
+            must_error(@() rpm.utils.load_quadruple_tank_params(input_path), ...
+                ["quadruple_tank:InvalidParameterValue", ...
+                 "quadruple_tank:InvalidParameterSize"]);
+        end
+        lines = splitlines(template);
+        lines(startsWith(lines, field + ":")) = [];
+        writelines(lines, input_path);
         must_error(@() rpm.utils.load_quadruple_tank_params(input_path), ...
-            ["quadruple_tank:InvalidParameterValue", ...
-             "quadruple_tank:InvalidParameterSize"]);
+            'quadruple_tank:MissingParameter');
     end
     for field = ["HoleArea_1", "g", "gamma_1", "gamma_2"]
         lines = splitlines(template);

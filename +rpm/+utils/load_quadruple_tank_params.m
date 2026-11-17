@@ -4,9 +4,13 @@ function params = load_quadruple_tank_params(file_path)
 %   quadruple_tank.yaml；指定 FILE_PATH 时读取对应的 YAML 文件。
 %
 %   返回普通 MATLAB 结构体，字段名与 YAML 一致：TankArea_1 至
-%   TankArea_4、HoleArea_1 至 HoleArea_4、g、gamma_1、gamma_2。
-%   面积单位为 m^2，g 的单位为 m/s^2，以上参数均为正的 double 标量；
-%   gamma_1、gamma_2 为 [0, 1] 内的 double 标量。
+%   TankArea_4、HoleArea_1 至 HoleArea_4、g、gamma_1、gamma_2、
+%   TankHeight_1 至 TankHeight_4、PumpMaxFlow_1 至 PumpMaxFlow_2、
+%   PumpFlowSpeed_1 至 PumpFlowSpeed_2，所有字段均为必需字段。
+%   面积单位为 m^2，g 为 m/s^2，水箱高度为 m，泵最大流量为 m^3/s，
+%   泵出口总管在最大流量下的平均流速为 m/s。
+%   所有值均为有限实数 double 标量；gamma_1、gamma_2 在 [0, 1] 内，
+%   其余参数均为正数。
 
     arguments
         file_path (1, 1) string = ""
@@ -32,7 +36,9 @@ function params = load_quadruple_tank_params(file_path)
 
     params = struct();
     positive_fields = ["TankArea_1", "TankArea_2", "TankArea_3", "TankArea_4", ...
-        "HoleArea_1", "HoleArea_2", "HoleArea_3", "HoleArea_4", "g"];
+        "HoleArea_1", "HoleArea_2", "HoleArea_3", "HoleArea_4", "g", ...
+        "TankHeight_1", "TankHeight_2", "TankHeight_3", "TankHeight_4", ...
+        "PumpMaxFlow_1", "PumpMaxFlow_2", "PumpFlowSpeed_1", "PumpFlowSpeed_2"];
     for field_name = positive_fields
         value = normalize_scalar(require_field(yaml_data, field_name), field_name);
         if value <= 0

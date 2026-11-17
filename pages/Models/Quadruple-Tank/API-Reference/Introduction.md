@@ -6,8 +6,8 @@ The state order is `[x1; x2; x3; x4]`, in metres. Pump inputs are volumetric flo
 
 ## 1. API Organization
 
-- [Properties](Properties.md): water levels, YAML-to-property mapping, held pump inputs, valve ratios, and disturbances.
-- [Methods](Methods.md): construction, pump commands, valve settings, disturbance settings, and integration.
+- [Properties](Properties.md): water levels, the parameter structure, held pump inputs, valve ratios, and disturbances.
+- [Methods](Methods.md): construction, reset, pump commands, valve settings, disturbance settings, and integration.
 - [Utils](Utils.md): YAML parameter loading, validation, and template export.
 - [Modeling](../Modeling/quadruple-tank-model.md): tank connections, state equations, and numerical boundary handling.
 
@@ -26,7 +26,7 @@ levels = [tank.x1; tank.x2; tank.x3; tank.x4];
 output = levels(1:2); % Lower-tank measurements [m]
 ```
 
-Choose a step size appropriate to the parameters and input changes, particularly near empty tanks. The implementation clips water levels at zero and does not impose an upper capacity limit.
+Choose a step size appropriate to the parameters and input changes, particularly near empty tanks. The implementation clips final levels to `[0, corresponding tank height]` and caps pump inputs at their maximum flows.
 
 ## 3. Optional Namespace Import
 
@@ -40,4 +40,4 @@ tank = quadruple_tank(params, [0.1; 0.1; 0.1; 0.1]);
 tank.step(0.01, 0);
 ```
 
-Imports apply only to the scope where they are declared. The current class exposes water levels directly; it has no `getStates()`, `getParams()`, or `reset()` method. Construct a new object to restart with specified levels or different fixed physical parameters.
+Imports apply only to the scope where they are declared. The current class exposes water levels directly; it has no `getStates()` or `getParams()` method. Use `reset()` or `reset(Ini_States)` to reset levels and clear inputs and disturbances while preserving current valve ratios. Construct a new object to change fixed parameters.
