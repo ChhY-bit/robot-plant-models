@@ -22,6 +22,8 @@ MATLAB R2024a has been verified. Earlier releases have not been tested.
 
 For a source checkout, run `setup` from the repository root. The script adds the project root to the search path; do not add `+rpm/` itself.
 
+`setup` lists other `+rpm` sources found in the current folder or search path, including their versions when available. You can switch to this copy or cancel without changing the environment. Switching removes the other source roots from the search path without deleting files or uninstalling toolboxes; if the current folder is an old source, it also changes to the selected project folder. The script displays the resolved `rpm.version` file before asking whether to save the full search path. Installed add-ons can restore their paths later; disable an old toolbox in MATLAB's Add-On Manager if necessary. Recreate RPM objects after switching copies.
+
 ## Version
 
 The root `VERSION` file is the single maintained project version. With the project on the MATLAB path, query it using:
